@@ -26,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending confirmation email to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "PointsIQ <onboarding@resend.dev>",
+      from: "PointsIQ <info@pointsiq.com>",
       to: [email],
       subject: "Welcome to PointsIQ Early Access! 🚀",
       html: `
