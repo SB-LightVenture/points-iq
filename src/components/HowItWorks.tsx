@@ -3,7 +3,7 @@ export const HowItWorks = () => {
     {
       step: "01",
       title: "Connect Your Accounts",
-      description: "Add your frequent flyer programs manually - Qantas, Velocity, Virgin, and more. Enter your current points balance for each account.",
+      description: "Add your frequent flyer programs - Qantas, Velocity, and more.",
       color: "blue"
     },
     {
