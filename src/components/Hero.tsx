@@ -1,8 +1,15 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowDown, Plane } from "lucide-react";
+import { ArrowDown, Plane, Lock } from "lucide-react";
 
 export const Hero = () => {
+  const scrollToSignup = () => {
+    const ctaSection = document.querySelector('[data-section="cta"]');
+    if (ctaSection) {
+      ctaSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Globe Animation */}
@@ -30,31 +37,33 @@ export const Hero = () => {
         </p>
         
         <p className="text-lg md:text-xl text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed">
-          Discover exactly where your frequent flyer points can take you with our interactive globe dashboard. 
-          See availability, compare classes, and book reward flights - all in one place.
+          Be among the first to discover exactly where your frequent flyer points can take you with our revolutionary interactive platform. 
+          Limited early access spots available - secure yours now.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg">
-            Start Exploring
-          </Button>
-          <Button size="lg" variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white px-8 py-4 text-lg">
-            Watch Demo
+        <div className="flex justify-center mb-12">
+          <Button 
+            size="lg" 
+            onClick={scrollToSignup}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-5 text-xl font-semibold rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
+          >
+            <Lock className="w-5 h-5 mr-2" />
+            Secure Early Access
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">200K+</div>
-            <div className="text-gray-300">Points Analyzed</div>
+            <div className="text-3xl font-bold text-blue-400 mb-2">5,000+</div>
+            <div className="text-gray-300">Early Access Spots</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-400 mb-2">50+</div>
-            <div className="text-gray-300">Destinations</div>
+            <div className="text-3xl font-bold text-purple-400 mb-2">Limited</div>
+            <div className="text-gray-300">Beta Access</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">24/7</div>
-            <div className="text-gray-300">Availability Check</div>
+            <div className="text-3xl font-bold text-blue-400 mb-2">Q1 2025</div>
+            <div className="text-gray-300">Launch Timeline</div>
           </div>
         </div>
       </div>

@@ -80,7 +80,7 @@ export const CTA = () => {
   };
 
   return (
-    <section className="py-20 px-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
+    <section data-section="cta" className="py-20 px-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
       <div className="container mx-auto text-center">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
