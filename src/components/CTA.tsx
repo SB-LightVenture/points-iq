@@ -25,26 +25,48 @@ export const CTA = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
+      // First, save to database
+      const { error: dbError } = await supabase
         .from("early_access_signups")
         .insert([{ email }]);
 
-      if (error) {
-        if (error.code === "23505") { // Unique constraint violation
+      if (dbError) {
+        if (dbError.code === "23505") { // Unique constraint violation
           toast({
             title: "Already Signed Up",
             description: "This email is already on our early access list!",
           });
+          setIsSubmitting(false);
+          return;
         } else {
-          throw error;
+          throw dbError;
         }
-      } else {
-        toast({
-          title: "Success! 🚀",
-          description: "You're on the list! We'll notify you when PointsIQ launches.",
-        });
-        setEmail(""); // Clear the form
       }
+
+      // Then send confirmation email
+      try {
+        const { error: emailError } = await supabase.functions.invoke(
+          'send-confirmation-email',
+          {
+            body: { email }
+          }
+        );
+
+        if (emailError) {
+          console.error("Email sending error:", emailError);
+          // Don't fail the whole process if email fails
+        }
+      } catch (emailError) {
+        console.error("Email function error:", emailError);
+        // Don't fail the whole process if email fails
+      }
+
+      toast({
+        title: "Success! 🚀",
+        description: "You're on the list! Check your email for confirmation details.",
+      });
+      setEmail(""); // Clear the form
+
     } catch (error) {
       console.error("Error signing up:", error);
       toast({
