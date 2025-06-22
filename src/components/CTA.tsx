@@ -1,8 +1,62 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const CTA = () => {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from("early_access_signups")
+        .insert([{ email }]);
+
+      if (error) {
+        if (error.code === "23505") { // Unique constraint violation
+          toast({
+            title: "Already Signed Up",
+            description: "This email is already on our early access list!",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Success! 🚀",
+          description: "You're on the list! We'll notify you when PointsIQ launches.",
+        });
+        setEmail(""); // Clear the form
+      }
+    } catch (error) {
+      console.error("Error signing up:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section className="py-20 px-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
       <div className="container mx-auto text-center">
@@ -16,15 +70,24 @@ export const CTA = () => {
             Get early access to our revolutionary platform.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 max-w-md mx-auto">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center mb-8 max-w-md mx-auto">
             <Input 
+              type="email"
               placeholder="Enter your email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting}
               className="bg-slate-800/50 border-slate-600 text-white placeholder-gray-400 flex-1"
+              required
             />
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8">
-              Get Early Access
+            <Button 
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+            >
+              {isSubmitting ? "Signing Up..." : "Get Early Access"}
             </Button>
-          </div>
+          </form>
           
           <p className="text-sm text-gray-400 mb-8">
             🔒 We respect your privacy. No spam, just early access updates.
