@@ -44,7 +44,7 @@ export const Footer = () => {
         
         <div className="pt-8 border-t border-slate-700 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2024 PointsIQ. All rights reserved.
+            © 2025 PointsIQ. All rights reserved.
           </p>
           <div className="flex items-center gap-6 mt-4 md:mt-0">
             <span className="text-gray-400 text-sm">Made for frequent flyers, by frequent flyers ✈️</span>

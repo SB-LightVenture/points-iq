@@ -117,20 +117,20 @@ export const CTA = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto pt-8 border-t border-slate-700">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400 mb-1">10K+</div>
-              <div className="text-gray-400 text-sm">Waitlist Members</div>
+              <div className="text-2xl font-bold text-blue-400 mb-1">5K+</div>
+              <div className="text-gray-400 text-sm">Early Access</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-400 mb-1">5★</div>
               <div className="text-gray-400 text-sm">Beta Reviews</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-400 mb-1">99.9%</div>
-              <div className="text-gray-400 text-sm">Uptime</div>
+              <div className="text-2xl font-bold text-green-400 mb-1">AI Powered</div>
+              <div className="text-gray-400 text-sm">Intelligence</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-400 mb-1">24/7</div>
-              <div className="text-gray-400 text-sm">Support</div>
+              <div className="text-2xl font-bold text-orange-400 mb-1">Community</div>
+              <div className="text-gray-400 text-sm">Access</div>
             </div>
           </div>
         </div>

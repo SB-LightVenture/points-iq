@@ -62,7 +62,7 @@ export const Hero = () => {
             <div className="text-gray-300">Beta Access</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">Q1 2025</div>
+            <div className="text-3xl font-bold text-blue-400 mb-2">Q3 2025</div>
             <div className="text-gray-300">Launch Timeline</div>
           </div>
         </div>
