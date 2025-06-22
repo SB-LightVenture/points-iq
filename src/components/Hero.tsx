@@ -22,12 +22,14 @@ export const Hero = () => {
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-          Unlock Your
-          <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"> Points </span>
-          Potential
+          <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">PointsIQ</span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-2xl md:text-3xl text-gray-300 mb-8 font-medium">
+          Travel intelligence for your miles
+        </p>
+        
+        <p className="text-lg md:text-xl text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed">
           Discover exactly where your frequent flyer points can take you with our interactive globe dashboard. 
           See availability, compare classes, and book reward flights - all in one place.
         </p>

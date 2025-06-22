@@ -11,8 +11,11 @@ export const Footer = () => {
               <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
                 <Plane className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">PointsPotential</span>
+              <span className="text-2xl font-bold text-white">PointsIQ</span>
             </div>
+            <p className="text-gray-400 max-w-md mb-2">
+              Travel intelligence for your miles
+            </p>
             <p className="text-gray-400 max-w-md">
               Unlock the true value of your frequent flyer points. Discover where you can fly, compare classes, and book reward flights - all in one intelligent platform.
             </p>
@@ -41,7 +44,7 @@ export const Footer = () => {
         
         <div className="pt-8 border-t border-slate-700 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2024 PointsPotential. All rights reserved.
+            © 2024 PointsIQ. All rights reserved.
           </p>
           <div className="flex items-center gap-6 mt-4 md:mt-0">
             <span className="text-gray-400 text-sm">Made for frequent flyers, by frequent flyers ✈️</span>
