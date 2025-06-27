@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowDown, Plane, Lock } from "lucide-react";
+import { ArrowDown, Lock } from "lucide-react";
+import { PointsIQLogo } from "./PointsIQLogo";
 
 export const Hero = () => {
   const scrollToSignup = () => {
@@ -23,13 +24,12 @@ export const Hero = () => {
 
       <div className="relative z-10 container mx-auto px-6 text-center">
         <div className="flex justify-center mb-6">
-          <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full">
-            <Plane className="w-8 h-8 text-white" />
-          </div>
+          <PointsIQLogo size="xl" variant="icon" />
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-          <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">PointsIQ</span>
+          <span className="text-white">Points</span>
+          <span className="bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">IQ</span>
         </h1>
         
         <p className="text-2xl md:text-3xl text-gray-300 mb-8 font-medium">

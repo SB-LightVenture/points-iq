@@ -1,5 +1,4 @@
-
-import { Plane } from "lucide-react";
+import { PointsIQLogo } from "./PointsIQLogo";
 
 export const Footer = () => {
   return (
@@ -7,11 +6,8 @@ export const Footer = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
-                <Plane className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">PointsIQ</span>
+            <div className="mb-4">
+              <PointsIQLogo size="lg" variant="full" />
             </div>
             <p className="text-gray-400 max-w-md mb-2">
               Travel intelligence for your miles
