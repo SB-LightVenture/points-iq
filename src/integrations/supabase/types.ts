@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      airlines: {
+        Row: {
+          alliance: string | null
+          created_at: string
+          frequent_flyer_program_id: string | null
+          iata_code: string
+          icao_code: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          alliance?: string | null
+          created_at?: string
+          frequent_flyer_program_id?: string | null
+          iata_code: string
+          icao_code?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          alliance?: string | null
+          created_at?: string
+          frequent_flyer_program_id?: string | null
+          iata_code?: string
+          icao_code?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airlines_frequent_flyer_program_id_fkey"
+            columns: ["frequent_flyer_program_id"]
+            isOneToOne: false
+            referencedRelation: "frequent_flyer_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       early_access_signups: {
         Row: {
           created_at: string
@@ -24,6 +62,87 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+        }
+        Relationships: []
+      }
+      flight_routes: {
+        Row: {
+          created_at: string
+          destination_airport: string
+          id: string
+          is_popular: boolean
+          last_searched_at: string | null
+          origin_airport: string
+          route_name: string
+          search_count: number
+        }
+        Insert: {
+          created_at?: string
+          destination_airport: string
+          id?: string
+          is_popular?: boolean
+          last_searched_at?: string | null
+          origin_airport: string
+          route_name: string
+          search_count?: number
+        }
+        Update: {
+          created_at?: string
+          destination_airport?: string
+          id?: string
+          is_popular?: boolean
+          last_searched_at?: string | null
+          origin_airport?: string
+          route_name?: string
+          search_count?: number
+        }
+        Relationships: []
+      }
+      flight_searches: {
+        Row: {
+          api_response: Json | null
+          cabin_class: string
+          created_at: string
+          departure_date: string
+          destination_airport: string
+          id: string
+          origin_airport: string
+          passengers: number
+          return_date: string | null
+          search_parameters: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_response?: Json | null
+          cabin_class?: string
+          created_at?: string
+          departure_date: string
+          destination_airport: string
+          id?: string
+          origin_airport: string
+          passengers?: number
+          return_date?: string | null
+          search_parameters: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_response?: Json | null
+          cabin_class?: string
+          created_at?: string
+          departure_date?: string
+          destination_airport?: string
+          id?: string
+          origin_airport?: string
+          passengers?: number
+          return_date?: string | null
+          search_parameters?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
