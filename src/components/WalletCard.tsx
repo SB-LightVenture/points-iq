@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Wallet, Edit, Trash2, CheckCircle, Circle } from 'lucide-react';
+import { Wallet, Edit, Trash2, Check } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 type PointsWallet = Tables<'points_wallets'> & {
@@ -10,12 +10,19 @@ type PointsWallet = Tables<'points_wallets'> & {
 
 interface WalletCardProps {
   wallet: PointsWallet;
+  isSelected: boolean;
   onEdit: (wallet: PointsWallet) => void;
   onDelete: (walletId: string) => void;
-  onSetActive: (walletId: string) => void;
+  onToggleSelect: (walletId: string) => void;
 }
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onEdit, onDelete, onSetActive }) => {
+const WalletCard: React.FC<WalletCardProps> = ({ 
+  wallet, 
+  isSelected, 
+  onEdit, 
+  onDelete, 
+  onToggleSelect 
+}) => {
   const formatPoints = (points: number) => {
     return points.toLocaleString();
   };
@@ -36,9 +43,9 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onEdit, onDelete, onSet
   };
 
   return (
-    <div className={`bg-slate-800/30 backdrop-blur-sm border rounded-xl p-6 transition-all hover:bg-slate-800/50 ${
-      wallet.is_active ? 'border-blue-500 ring-1 ring-blue-500/20' : 'border-slate-700'
-    }`}>
+    <div className={`bg-slate-800/30 backdrop-blur-sm border rounded-xl p-6 transition-all hover:bg-slate-800/50 cursor-pointer ${
+      isSelected ? 'border-blue-500 ring-1 ring-blue-500/20' : 'border-slate-700'
+    }`} onClick={() => onToggleSelect(wallet.id)}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -51,10 +58,20 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onEdit, onDelete, onSet
         </div>
         
         <div className="flex items-center space-x-2">
+          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+            isSelected 
+              ? 'bg-blue-500 border-blue-500' 
+              : 'border-gray-400'
+          }`}>
+            {isSelected && <Check className="w-3 h-3 text-white" />}
+          </div>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEdit(wallet)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(wallet);
+            }}
             className="text-gray-400 hover:text-white"
           >
             <Edit className="w-4 h-4" />
@@ -62,7 +79,10 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onEdit, onDelete, onSet
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onDelete(wallet.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(wallet.id);
+            }}
             className="text-gray-400 hover:text-red-400"
           >
             <Trash2 className="w-4 h-4" />
@@ -82,31 +102,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onEdit, onDelete, onSet
             {wallet.status_level}
           </p>
         </div>
-      </div>
-
-      <div className="mt-4 pt-4 border-t border-slate-700">
-        <Button
-          variant="ghost"
-          onClick={() => onSetActive(wallet.id)}
-          className={`w-full flex items-center justify-center space-x-2 ${
-            wallet.is_active 
-              ? 'text-blue-400 bg-blue-500/10' 
-              : 'text-gray-400 hover:text-white'
-          }`}
-          disabled={wallet.is_active}
-        >
-          {wallet.is_active ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              <span>Active Wallet</span>
-            </>
-          ) : (
-            <>
-              <Circle className="w-4 h-4" />
-              <span>Set as Active</span>
-            </>
-          )}
-        </Button>
       </div>
     </div>
   );

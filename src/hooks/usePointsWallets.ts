@@ -15,7 +15,7 @@ export const usePointsWallets = () => {
   const [wallets, setWallets] = useState<PointsWallet[]>([]);
   const [programs, setPrograms] = useState<FrequentFlyerProgram[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeWallet, setActiveWallet] = useState<PointsWallet | null>(null);
+  const [selectedWalletIds, setSelectedWalletIds] = useState<string[]>([]);
 
   const fetchPrograms = async () => {
     const { data, error } = await supabase
@@ -52,11 +52,6 @@ export const usePointsWallets = () => {
     
     const walletsData = data as PointsWallet[];
     setWallets(walletsData || []);
-    
-    // Set active wallet
-    const active = walletsData?.find(wallet => wallet.is_active);
-    setActiveWallet(active || null);
-    
     setLoading(false);
   };
 
@@ -70,7 +65,7 @@ export const usePointsWallets = () => {
         program_id: programId,
         points_balance: pointsBalance,
         status_level: statusLevel,
-        is_active: wallets.length === 0 // Make first wallet active by default
+        is_active: false
       })
       .select(`
         *,
@@ -113,23 +108,30 @@ export const usePointsWallets = () => {
       return { error: error.message };
     }
     
+    // Remove from selected wallets if it was selected
+    setSelectedWalletIds(prev => prev.filter(id => id !== walletId));
     await fetchWallets();
     return { error: null };
   };
 
-  const setActiveWalletById = async (walletId: string) => {
-    const { error } = await supabase
-      .from('points_wallets')
-      .update({ is_active: true })
-      .eq('id', walletId);
-    
-    if (error) {
-      console.error('Error setting active wallet:', error);
-      return { error: error.message };
-    }
-    
-    await fetchWallets();
-    return { error: null };
+  const toggleWalletSelection = (walletId: string) => {
+    setSelectedWalletIds(prev => 
+      prev.includes(walletId) 
+        ? prev.filter(id => id !== walletId)
+        : [...prev, walletId]
+    );
+  };
+
+  const selectAllWallets = () => {
+    setSelectedWalletIds(wallets.map(wallet => wallet.id));
+  };
+
+  const deselectAllWallets = () => {
+    setSelectedWalletIds([]);
+  };
+
+  const getSelectedWallets = () => {
+    return wallets.filter(wallet => selectedWalletIds.includes(wallet.id));
   };
 
   useEffect(() => {
@@ -146,11 +148,14 @@ export const usePointsWallets = () => {
     wallets,
     programs,
     loading,
-    activeWallet,
+    selectedWalletIds,
     createWallet,
     updateWallet,
     deleteWallet,
-    setActiveWalletById,
+    toggleWalletSelection,
+    selectAllWallets,
+    deselectAllWallets,
+    getSelectedWallets,
     refetch: fetchWallets
   };
 };
