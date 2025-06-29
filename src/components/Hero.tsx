@@ -1,12 +1,25 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowDown, Lock } from "lucide-react";
+import { ArrowDown, Lock, LogIn } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const scrollToSignup = () => {
     const ctaSection = document.querySelector('[data-section="cta"]');
     if (ctaSection) {
       ctaSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleAuthClick = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
     }
   };
 
@@ -36,15 +49,35 @@ export const Hero = () => {
           Limited early access spots available - secure yours now.
         </p>
         
-        <div className="flex justify-center mb-8 sm:mb-12">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8 sm:mb-12">
           <Button 
             size="lg" 
-            onClick={scrollToSignup}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 text-base sm:text-lg md:text-xl font-semibold rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 w-full max-w-xs sm:w-auto"
+            onClick={handleAuthClick}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 text-base sm:text-lg md:text-xl font-semibold rounded-full shadow-2xl hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 w-full max-w-xs sm:w-auto"
           >
-            <Lock className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            Secure Early Access
+            {user ? (
+              <>
+                <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 mr-2 rotate-45" />
+                Go to Dashboard
+              </>
+            ) : (
+              <>
+                <LogIn className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                Login / Sign Up
+              </>
+            )}
           </Button>
+          
+          {!user && (
+            <Button 
+              size="lg" 
+              onClick={scrollToSignup}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 text-base sm:text-lg md:text-xl font-semibold rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 w-full max-w-xs sm:w-auto"
+            >
+              <Lock className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              Secure Early Access
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 max-w-2xl sm:max-w-4xl mx-auto">

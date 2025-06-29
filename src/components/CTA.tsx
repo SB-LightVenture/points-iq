@@ -4,11 +4,16 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 export const CTA = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +83,52 @@ export const CTA = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (user) {
+    return (
+      <section data-section="cta" className="py-20 px-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
+        <div className="container mx-auto text-center">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              Welcome to <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">PointsIQ</span>
+            </h2>
+            
+            <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+              You're logged in and ready to explore! The Interactive Globe Dashboard is coming soon, 
+              and you'll be among the first to experience it.
+            </p>
+            
+            <Button 
+              onClick={() => navigate('/dashboard')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg"
+            >
+              Go to Dashboard
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto pt-8 mt-8 border-t border-slate-700">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400 mb-1">✓ Registered</div>
+                <div className="text-gray-400 text-sm">Account Active</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-400 mb-1">Early Access</div>
+                <div className="text-gray-400 text-sm">Confirmed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400 mb-1">AI Powered</div>
+                <div className="text-gray-400 text-sm">Intelligence</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-400 mb-1">Globe View</div>
+                <div className="text-gray-400 text-sm">Coming Soon</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section data-section="cta" className="py-20 px-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 backdrop-blur-sm">
