@@ -27,6 +27,77 @@ export type Database = {
         }
         Relationships: []
       }
+      frequent_flyer_programs: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          partner_programs: string[] | null
+          status_levels: string[]
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          partner_programs?: string[] | null
+          status_levels?: string[]
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          partner_programs?: string[] | null
+          status_levels?: string[]
+        }
+        Relationships: []
+      }
+      points_wallets: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          points_balance: number
+          program_id: string
+          status_level: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          points_balance?: number
+          program_id: string
+          status_level?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          points_balance?: number
+          program_id?: string
+          status_level?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_wallets_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "frequent_flyer_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
