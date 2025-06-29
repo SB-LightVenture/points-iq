@@ -1,13 +1,14 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Globe, LogOut, User, Plus, Wallet, CheckSquare, Square } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePointsWallets } from '@/hooks/usePointsWallets';
-import WalletModal from '@/components/WalletModal';
-import WalletCard from '@/components/WalletCard';
-import FlightSearchSection from '@/components/FlightSearchSection';
 import { useToast } from '@/hooks/use-toast';
+import WalletModal from '@/components/WalletModal';
+import DashboardHeader from '@/components/DashboardHeader';
+import WalletsSection from '@/components/WalletsSection';
+import FlightSearchContainer from '@/components/FlightSearchContainer';
+import GlobeSection from '@/components/GlobeSection';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -103,179 +104,29 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-700 bg-slate-800/20 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold">
-              <span className="text-white">Points</span>
-              <span className="text-orange-400">IQ</span>
-            </h1>
-            <span className="text-gray-400">Dashboard</span>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-gray-300">
-              <User className="w-4 h-4" />
-              <span className="text-sm">{user?.email}</span>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={handleSignOut}
-              className="text-gray-400 hover:text-white"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader 
+        userEmail={user?.email || ''} 
+        onSignOut={handleSignOut} 
+      />
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Points Wallets Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Your Points Wallets</h2>
-              <p className="text-gray-300">Select wallets to search for flights across multiple programs</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              {wallets.length > 0 && (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={selectedWalletIds.length === wallets.length ? deselectAllWallets : selectAllWallets}
-                    className="text-gray-400 hover:text-white"
-                  >
-                    {selectedWalletIds.length === wallets.length ? (
-                      <>
-                        <Square className="w-4 h-4 mr-2" />
-                        Deselect All
-                      </>
-                    ) : (
-                      <>
-                        <CheckSquare className="w-4 h-4 mr-2" />
-                        Select All
-                      </>
-                    )}
-                  </Button>
-                  <div className="text-sm text-gray-400">
-                    {selectedWalletIds.length} of {wallets.length} selected
-                  </div>
-                </>
-              )}
-              <Button
-                onClick={() => setIsWalletModalOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Wallet
-              </Button>
-            </div>
-          </div>
+        <WalletsSection
+          wallets={wallets}
+          loading={loading}
+          selectedWalletIds={selectedWalletIds}
+          onAddWallet={() => setIsWalletModalOpen(true)}
+          onEditWallet={handleEditWallet}
+          onDeleteWallet={handleDeleteWallet}
+          onToggleWalletSelection={toggleWalletSelection}
+          onSelectAllWallets={selectAllWallets}
+          onDeselectAllWallets={deselectAllWallets}
+        />
 
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-300">Loading your wallets...</p>
-            </div>
-          ) : wallets.length === 0 ? (
-            <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-xl p-8 text-center">
-              <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No Wallets Yet</h3>
-              <p className="text-gray-300 mb-6">
-                Add your first frequent flyer wallet to start searching for flights
-              </p>
-              <Button
-                onClick={() => setIsWalletModalOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Your First Wallet
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {wallets.map((wallet) => (
-                <WalletCard
-                  key={wallet.id}
-                  wallet={wallet}
-                  isSelected={selectedWalletIds.includes(wallet.id)}
-                  onEdit={handleEditWallet}
-                  onDelete={handleDeleteWallet}
-                  onToggleSelect={toggleWalletSelection}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <FlightSearchContainer selectedWallets={selectedWallets} />
 
-        {/* Flight Search Section */}
-        <div className="mb-12">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white mb-2">Flight Search</h2>
-            <p className="text-gray-300">Search for award flights using your selected frequent flyer programs</p>
-          </div>
-          
-          <FlightSearchSection selectedWallets={selectedWallets} />
-        </div>
-
-        {/* Interactive Globe Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Interactive <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Globe Dashboard</span>
-          </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Coming soon: visualize destinations and compare redemption options across your selected wallets
-          </p>
-        </div>
-
-        {/* Globe Feature Placeholder */}
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 text-center">
-            <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-              <Globe className="w-16 h-16 text-white animate-spin" style={{ animationDuration: '10s' }} />
-            </div>
-            
-            <h3 className="text-2xl font-bold text-white mb-4">
-              Globe Feature Coming Soon
-            </h3>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-              The Interactive Globe will show destinations available through your selected programs, 
-              with separate point costs for each frequent flyer program.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-slate-700/30 rounded-xl p-4">
-                <h4 className="text-lg font-semibold text-blue-400 mb-2">Visualize Destinations</h4>
-                <p className="text-gray-300 text-sm">See exactly where your points can take you on an interactive 3D globe</p>
-              </div>
-              <div className="bg-slate-700/30 rounded-xl p-4">
-                <h4 className="text-lg font-semibold text-purple-400 mb-2">Real-Time Availability</h4>
-                <p className="text-gray-300 text-sm">Check live reward seat availability across multiple airlines</p>
-              </div>
-              <div className="bg-slate-700/30 rounded-xl p-4">
-                <h4 className="text-lg font-semibold text-green-400 mb-2">Multi-Class Comparison</h4>
-                <p className="text-gray-300 text-sm">Compare Economy, Business, and First Class options instantly</p>
-              </div>
-              <div className="bg-slate-700/30 rounded-xl p-4">
-                <h4 className="text-lg font-semibold text-orange-400 mb-2">Points Optimization</h4>
-                <p className="text-gray-300 text-sm">Maximize the value of your frequent flyer points</p>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-blue-500/30">
-              <h4 className="text-lg font-semibold text-white mb-2">Ready for Launch</h4>
-              <p className="text-gray-300">
-                Your wallets are set up and ready. The Interactive Globe Dashboard will be available soon!
-              </p>
-            </div>
-          </div>
-        </div>
+        <GlobeSection />
       </main>
 
-      {/* Wallet Modal */}
       <WalletModal
         isOpen={isWalletModalOpen}
         onClose={handleCloseModal}
