@@ -11,8 +11,8 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
       <Hero />
       <Features />
-      <HowItWorks />
       <Benefits />
+      <HowItWorks />
       <CTA />
       <Footer />
     </div>
