@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
+import { Search, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Plane, MapPin, Calendar } from 'lucide-react';
 import { useFlightSearch } from '@/hooks/useFlightSearch';
 import FlightSearchResults from '@/components/FlightSearchResults';
+import FlightSearchForm from '@/components/FlightSearchForm';
+import FlightSearchSummary from '@/components/FlightSearchSummary';
+import PartnerNetworksDisplay from '@/components/PartnerNetworksDisplay';
 import type { Tables } from '@/integrations/supabase/types';
 
 type PointsWallet = Tables<'points_wallets'> & {
@@ -75,16 +76,6 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({
     return selectedWallets.length;
   };
 
-  const getUniquePartners = () => {
-    const allPartners = new Set<string>();
-    selectedWallets.forEach(wallet => {
-      wallet.frequent_flyer_programs.partner_programs?.forEach(partner => {
-        allPartners.add(partner);
-      });
-    });
-    return Array.from(allPartners);
-  };
-
   // Show results if we have them
   if (searchResults) {
     return (
@@ -129,145 +120,27 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({
         </div>
       </div>
 
-      {/* Selected Wallets Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {selectedWallets.map((wallet) => (
-          <div key={wallet.id} className="bg-slate-700/30 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-white text-sm">{wallet.frequent_flyer_programs.name}</h4>
-              <span className="text-xs text-gray-400">{wallet.frequent_flyer_programs.code}</span>
-            </div>
-            <p className="text-lg font-bold text-blue-400">{wallet.points_balance.toLocaleString()} pts</p>
-            <p className="text-xs text-gray-400">{wallet.status_level}</p>
-          </div>
-        ))}
-      </div>
+      <FlightSearchSummary selectedWallets={selectedWallets} />
 
-      {/* Search Form */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <div>
-          <Label htmlFor="origin" className="text-gray-300">Origin</Label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              id="origin"
-              type="text"
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
-              placeholder="e.g., LAX, JFK, DFW"
-            />
-          </div>
-        </div>
+      <FlightSearchForm
+        origin={origin}
+        destination={destination}
+        departureDate={departureDate}
+        returnDate={returnDate}
+        cabinClass={cabinClass}
+        passengers={passengers}
+        loading={loading}
+        error={error}
+        onOriginChange={setOrigin}
+        onDestinationChange={setDestination}
+        onDepartureDateChange={setDepartureDate}
+        onReturnDateChange={setReturnDate}
+        onCabinClassChange={setCabinClass}
+        onPassengersChange={setPassengers}
+        onSearch={handleSearch}
+      />
 
-        <div>
-          <Label htmlFor="destination" className="text-gray-300">Destination</Label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              id="destination"
-              type="text"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
-              placeholder="e.g., NRT, LHR, CDG"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="departure" className="text-gray-300">Departure Date</Label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              id="departure"
-              type="date"
-              value={departureDate}
-              onChange={(e) => setDepartureDate(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="return" className="text-gray-300">Return Date (Optional)</Label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              id="return"
-              type="date"
-              value={returnDate}
-              onChange={(e) => setReturnDate(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="cabin" className="text-gray-300">Cabin Class</Label>
-          <Select value={cabinClass} onValueChange={setCabinClass}>
-            <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
-              <SelectItem value="economy" className="text-white hover:bg-slate-700">Economy</SelectItem>
-              <SelectItem value="premium-economy" className="text-white hover:bg-slate-700">Premium Economy</SelectItem>
-              <SelectItem value="business" className="text-white hover:bg-slate-700">Business</SelectItem>
-              <SelectItem value="first" className="text-white hover:bg-slate-700">First Class</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="passengers" className="text-gray-300">Passengers</Label>
-          <Select value={passengers.toString()} onValueChange={(value) => setPassengers(parseInt(value))}>
-            <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
-              {[1, 2, 3, 4, 5, 6].map((num) => (
-                <SelectItem key={num} value={num.toString()} className="text-white hover:bg-slate-700">
-                  {num} {num === 1 ? 'Passenger' : 'Passengers'}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-6">
-        <Button
-          onClick={handleSearch}
-          disabled={!origin.trim() || !destination.trim() || !departureDate || loading}
-          className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-        >
-          <Search className="w-4 h-4 mr-2" />
-          {loading ? 'Searching...' : 'Search Flights'}
-        </Button>
-        
-        {error && (
-          <div className="text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-      </div>
-
-      {/* Partner Networks Info */}
-      {getUniquePartners().length > 0 && (
-        <div className="bg-slate-700/20 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-gray-300 mb-2">Available Partner Networks</h4>
-          <div className="flex flex-wrap gap-2">
-            {getUniquePartners().map((partner) => (
-              <span
-                key={partner}
-                className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full"
-              >
-                {partner}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      <PartnerNetworksDisplay selectedWallets={selectedWallets} />
     </div>
   );
 };
