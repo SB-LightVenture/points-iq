@@ -30,6 +30,7 @@ const Dashboard = () => {
 
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [editingWallet, setEditingWallet] = useState(null);
+  const [flightSearchParams, setFlightSearchParams] = useState<{origin?: string, destination?: string} | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -100,6 +101,14 @@ const Dashboard = () => {
     setEditingWallet(null);
   };
 
+  const handleDestinationSelect = (origin: string, destination: string) => {
+    setFlightSearchParams({ origin, destination });
+    toast({
+      title: "Route Selected",
+      description: `Flight search updated: ${origin} → ${destination}`,
+    });
+  };
+
   const selectedWallets = getSelectedWallets();
 
   return (
@@ -122,9 +131,12 @@ const Dashboard = () => {
           onDeselectAllWallets={deselectAllWallets}
         />
 
-        <FlightSearchContainer selectedWallets={selectedWallets} />
+        <FlightSearchContainer 
+          selectedWallets={selectedWallets} 
+          initialSearchParams={flightSearchParams}
+        />
 
-        <GlobeSection />
+        <GlobeSection onDestinationSelect={handleDestinationSelect} />
       </main>
 
       <WalletModal

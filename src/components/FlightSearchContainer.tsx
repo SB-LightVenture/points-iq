@@ -1,6 +1,6 @@
 
 import React from 'react';
-import FlightSearchSection from '@/components/FlightSearchSection';
+import FlightSearchSection from './FlightSearchSection';
 import type { Tables } from '@/integrations/supabase/types';
 
 type PointsWallet = Tables<'points_wallets'> & {
@@ -9,17 +9,31 @@ type PointsWallet = Tables<'points_wallets'> & {
 
 interface FlightSearchContainerProps {
   selectedWallets: PointsWallet[];
+  initialSearchParams?: {
+    origin?: string;
+    destination?: string;
+  } | null;
 }
 
-const FlightSearchContainer: React.FC<FlightSearchContainerProps> = ({ selectedWallets }) => {
+const FlightSearchContainer: React.FC<FlightSearchContainerProps> = ({ 
+  selectedWallets, 
+  initialSearchParams 
+}) => {
   return (
-    <div className="mb-12">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Flight Search</h2>
-        <p className="text-gray-300">Search for award flights using your selected frequent flyer programs</p>
+    <div className="mb-16">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          Flight <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">Search</span>
+        </h2>
+        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          Search award flights across your selected frequent flyer programs
+        </p>
       </div>
-      
-      <FlightSearchSection selectedWallets={selectedWallets} />
+
+      <FlightSearchSection 
+        selectedWallets={selectedWallets} 
+        initialSearchParams={initialSearchParams}
+      />
     </div>
   );
 };

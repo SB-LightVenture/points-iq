@@ -47,6 +47,45 @@ export type Database = {
           },
         ]
       }
+      airports: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          iata_code: string
+          icao_code: string | null
+          id: string
+          is_major: boolean
+          latitude: number
+          longitude: number
+          name: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          iata_code: string
+          icao_code?: string | null
+          id?: string
+          is_major?: boolean
+          latitude: number
+          longitude: number
+          name: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          iata_code?: string
+          icao_code?: string | null
+          id?: string
+          is_major?: boolean
+          latitude?: number
+          longitude?: number
+          name?: string
+        }
+        Relationships: []
+      }
       early_access_signups: {
         Row: {
           created_at: string
@@ -217,6 +256,54 @@ export type Database = {
           },
         ]
       }
+      popular_destinations: {
+        Row: {
+          avg_points_cost: number | null
+          created_at: string
+          destination_airport_id: string
+          id: string
+          is_featured: boolean
+          last_searched_at: string | null
+          origin_airport_id: string
+          search_count: number
+        }
+        Insert: {
+          avg_points_cost?: number | null
+          created_at?: string
+          destination_airport_id: string
+          id?: string
+          is_featured?: boolean
+          last_searched_at?: string | null
+          origin_airport_id: string
+          search_count?: number
+        }
+        Update: {
+          avg_points_cost?: number | null
+          created_at?: string
+          destination_airport_id?: string
+          id?: string
+          is_featured?: boolean
+          last_searched_at?: string | null
+          origin_airport_id?: string
+          search_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "popular_destinations_destination_airport_id_fkey"
+            columns: ["destination_airport_id"]
+            isOneToOne: false
+            referencedRelation: "airports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "popular_destinations_origin_airport_id_fkey"
+            columns: ["origin_airport_id"]
+            isOneToOne: false
+            referencedRelation: "airports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -240,6 +327,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_home_airports: {
+        Row: {
+          airport_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          user_id: string
+        }
+        Insert: {
+          airport_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          user_id: string
+        }
+        Update: {
+          airport_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_home_airports_airport_id_fkey"
+            columns: ["airport_id"]
+            isOneToOne: false
+            referencedRelation: "airports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

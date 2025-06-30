@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,9 +14,16 @@ type PointsWallet = Tables<'points_wallets'> & {
 
 interface FlightSearchSectionProps {
   selectedWallets: PointsWallet[];
+  initialSearchParams?: {
+    origin?: string;
+    destination?: string;
+  } | null;
 }
 
-const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({ selectedWallets }) => {
+const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({ 
+  selectedWallets, 
+  initialSearchParams 
+}) => {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [departureDate, setDepartureDate] = useState('');
@@ -25,6 +32,18 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({ selectedWalle
   const [passengers, setPassengers] = useState(1);
 
   const { searchResults, loading, error, searchFlights, clearResults } = useFlightSearch();
+
+  // Update search fields when initial parameters change
+  useEffect(() => {
+    if (initialSearchParams) {
+      if (initialSearchParams.origin) {
+        setOrigin(initialSearchParams.origin);
+      }
+      if (initialSearchParams.destination) {
+        setDestination(initialSearchParams.destination);
+      }
+    }
+  }, [initialSearchParams]);
 
   const handleSearch = () => {
     if (!origin.trim() || !destination.trim() || !departureDate) {
