@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,8 +74,7 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({ selectedWalle
           <h3 className="text-xl font-bold text-white">Flight Search Results</h3>
           <Button
             onClick={handleNewSearch}
-            variant="outline"
-            className="border-slate-600 text-gray-300 hover:text-white"
+            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
           >
             New Search
           </Button>
