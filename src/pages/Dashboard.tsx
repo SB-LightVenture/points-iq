@@ -136,7 +136,10 @@ const Dashboard = () => {
           initialSearchParams={flightSearchParams}
         />
 
-        <GlobeSection onDestinationSelect={handleDestinationSelect} />
+        <GlobeSection 
+          selectedWallets={selectedWallets}
+          onDestinationSelect={handleDestinationSelect} 
+        />
       </main>
 
       <WalletModal

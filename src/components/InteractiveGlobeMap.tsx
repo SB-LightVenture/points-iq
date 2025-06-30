@@ -8,26 +8,26 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
-// Mapbox public token - using a public token for demo purposes
+// Using Mapbox public demo token - in production, this should come from environment
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFwYm94IiwidmVyc2lvbiI6MX0.Y8u3KaVzf4_4HzEkrJBF8Q';
 
 type Airport = Tables<'airports'>;
-type PopularDestination = Tables<'popular_destinations'> & {
-  origin_airport: Airport;
-  destination_airport: Airport;
-};
 
 interface InteractiveGlobeMapProps {
   onDestinationSelect?: (airport: Airport) => void;
+  homeAirport?: Airport | null;
+  onHomeAirportChange?: (airport: Airport) => void;
 }
 
-const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ onDestinationSelect }) => {
+const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ 
+  onDestinationSelect, 
+  homeAirport,
+  onHomeAirportChange 
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [airports, setAirports] = useState<Airport[]>([]);
-  const [homeAirports, setHomeAirports] = useState<Airport[]>([]);
-  const [popularRoutes, setPopularRoutes] = useState<PopularDestination[]>([]);
-  const [selectedHomeAirport, setSelectedHomeAirport] = useState<Airport | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -40,8 +40,8 @@ const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ onDestination
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: [-74.5, 40],
-      zoom: 2,
+      center: homeAirport ? [homeAirport.longitude, homeAirport.latitude] : [-74.5, 40],
+      zoom: homeAirport ? 4 : 2,
       projection: 'globe' as any
     });
 
@@ -65,6 +65,17 @@ const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ onDestination
     };
   }, []);
 
+  // Update map center when home airport changes
+  useEffect(() => {
+    if (map.current && homeAirport) {
+      map.current.flyTo({
+        center: [homeAirport.longitude, homeAirport.latitude],
+        zoom: 4,
+        duration: 2000
+      });
+    }
+  }, [homeAirport]);
+
   // Load airports data
   useEffect(() => {
     const loadAirports = async () => {
@@ -84,99 +95,99 @@ const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ onDestination
     loadAirports();
   }, []);
 
-  // Load user's home airports
-  useEffect(() => {
-    if (!user) return;
-
-    const loadHomeAirports = async () => {
-      const { data, error } = await supabase
-        .from('user_home_airports')
-        .select(`
-          *,
-          airports (*)
-        `)
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error loading home airports:', error);
-        return;
-      }
-
-      const homeAirportsList = data?.map(item => item.airports).filter(Boolean) as Airport[] || [];
-      setHomeAirports(homeAirportsList);
-      
-      // Set primary home airport if exists
-      const primaryHome = data?.find(item => item.is_primary);
-      if (primaryHome && primaryHome.airports) {
-        setSelectedHomeAirport(primaryHome.airports as Airport);
-      } else if (homeAirportsList.length > 0) {
-        setSelectedHomeAirport(homeAirportsList[0]);
-      }
-    };
-
-    loadHomeAirports();
-  }, [user]);
-
   // Add airport markers to map
   useEffect(() => {
     if (!map.current || airports.length === 0) return;
 
-    // Remove existing markers
-    const existingMarkers = document.querySelectorAll('.airport-marker');
-    existingMarkers.forEach(marker => marker.remove());
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
 
     airports.forEach(airport => {
+      const isHome = homeAirport?.id === airport.id;
+      
       const markerElement = document.createElement('div');
-      markerElement.className = 'airport-marker';
-      markerElement.innerHTML = `
-        <div class="w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-lg cursor-pointer hover:bg-blue-400 transition-colors"></div>
-      `;
+      markerElement.className = `cursor-pointer transition-all duration-200 ${
+        isHome 
+          ? 'w-6 h-6 bg-green-500 rounded-full border-3 border-white shadow-lg hover:bg-green-400' 
+          : 'w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-lg hover:bg-blue-400 hover:w-4 hover:h-4'
+      }`;
 
       const marker = new mapboxgl.Marker(markerElement)
         .setLngLat([airport.longitude, airport.latitude])
         .addTo(map.current!);
 
-      // Add popup on click
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`
-          <div class="p-2">
-            <h3 class="font-bold text-sm">${airport.name}</h3>
-            <p class="text-xs text-gray-600">${airport.city}, ${airport.country}</p>
-            <p class="text-xs font-mono">${airport.iata_code}</p>
+      markersRef.current.push(marker);
+
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: false,
+        closeOnClick: false
+      }).setHTML(`
+        <div class="p-3 min-w-[200px]">
+          <h3 class="font-bold text-sm text-white mb-1">${airport.name}</h3>
+          <p class="text-xs text-gray-300 mb-2">${airport.city}, ${airport.country}</p>
+          <p class="text-xs font-mono text-blue-400 mb-3">${airport.iata_code}</p>
+          <div class="flex gap-2">
+            ${!isHome ? `
+              <button 
+                class="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                onclick="window.setHomeAirport?.('${airport.id}')"
+              >
+                Set Home
+              </button>
+            ` : `
+              <span class="px-2 py-1 bg-green-800 text-green-200 text-xs rounded">
+                Home Airport
+              </span>
+            `}
             <button 
-              class="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+              class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
               onclick="window.selectDestination?.('${airport.id}')"
             >
-              Select Destination
+              Select Route
             </button>
           </div>
-        `);
+        </div>
+      `);
 
-      markerElement.addEventListener('click', () => {
+      markerElement.addEventListener('mouseenter', () => {
         popup.addTo(map.current!);
+      });
+
+      markerElement.addEventListener('mouseleave', () => {
+        popup.remove();
       });
     });
 
-    // Global function for destination selection
+    // Global functions for airport selection
     (window as any).selectDestination = (airportId: string) => {
       const airport = airports.find(a => a.id === airportId);
       if (airport && onDestinationSelect) {
         onDestinationSelect(airport);
         toast({
-          title: "Destination Selected",
-          description: `${airport.name} (${airport.iata_code}) selected for flight search.`,
+          title: "Route Selected",
+          description: `${airport.name} (${airport.iata_code}) selected.`,
         });
+      }
+    };
+
+    (window as any).setHomeAirport = (airportId: string) => {
+      const airport = airports.find(a => a.id === airportId);
+      if (airport && onHomeAirportChange) {
+        onHomeAirportChange(airport);
       }
     };
 
     return () => {
       delete (window as any).selectDestination;
+      delete (window as any).setHomeAirport;
     };
-  }, [airports, onDestinationSelect, toast]);
+  }, [airports, homeAirport, onDestinationSelect, onHomeAirportChange, toast]);
 
-  // Add flight routes from selected home airport
+  // Add flight routes from home airport
   useEffect(() => {
-    if (!map.current || !selectedHomeAirport) return;
+    if (!map.current || !homeAirport) return;
 
     // Remove existing route layers
     if (map.current.getSource('routes')) {
@@ -184,103 +195,61 @@ const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ onDestination
       map.current.removeSource('routes');
     }
 
-    // Create routes from home airport to popular destinations
+    // Create routes from home airport to other destinations
     const routeFeatures = airports
-      .filter(airport => airport.id !== selectedHomeAirport.id)
-      .slice(0, 10) // Show top 10 destinations
+      .filter(airport => airport.id !== homeAirport.id)
+      .slice(0, 12) // Show top 12 destinations
       .map(destination => ({
         type: 'Feature' as const,
         properties: {
-          origin: selectedHomeAirport.iata_code,
+          origin: homeAirport.iata_code,
           destination: destination.iata_code,
-          cost: Math.floor(Math.random() * 100000) + 25000 // Mock points cost
+          cost: Math.floor(Math.random() * 75000) + 25000 // Mock points cost
         },
         geometry: {
           type: 'LineString' as const,
           coordinates: [
-            [selectedHomeAirport.longitude, selectedHomeAirport.latitude],
+            [homeAirport.longitude, homeAirport.latitude],
             [destination.longitude, destination.latitude]
           ]
         }
       }));
 
-    map.current.addSource('routes', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: routeFeatures
-      }
-    });
-
-    map.current.addLayer({
-      id: 'routes',
-      type: 'line',
-      source: 'routes',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': [
-          'interpolate',
-          ['linear'],
-          ['get', 'cost'],
-          25000, '#22c55e', // Green for cheaper flights
-          50000, '#eab308', // Yellow for medium cost
-          75000, '#ef4444'  // Red for expensive flights
-        ],
-        'line-width': 2,
-        'line-opacity': 0.8
-      }
-    });
-
-    // Center map on home airport
-    map.current.flyTo({
-      center: [selectedHomeAirport.longitude, selectedHomeAirport.latitude],
-      zoom: 3,
-      duration: 2000
-    });
-
-  }, [selectedHomeAirport, airports]);
-
-  const setAsHomeAirport = async (airport: Airport) => {
-    if (!user) return;
-
-    try {
-      // Remove existing primary home airport
-      await supabase
-        .from('user_home_airports')
-        .update({ is_primary: false })
-        .eq('user_id', user.id);
-
-      // Add new home airport
-      const { error } = await supabase
-        .from('user_home_airports')
-        .upsert({
-          user_id: user.id,
-          airport_id: airport.id,
-          is_primary: true
-        });
-
-      if (error) throw error;
-
-      setSelectedHomeAirport(airport);
-      toast({
-        title: "Home Airport Set",
-        description: `${airport.name} is now your primary home airport.`,
+    if (routeFeatures.length > 0) {
+      map.current.addSource('routes', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: routeFeatures
+        }
       });
-    } catch (error) {
-      console.error('Error setting home airport:', error);
-      toast({
-        title: "Error",
-        description: "Failed to set home airport. Please try again.",
-        variant: "destructive",
+
+      map.current.addLayer({
+        id: 'routes',
+        type: 'line',
+        source: 'routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': [
+            'interpolate',
+            ['linear'],
+            ['get', 'cost'],
+            25000, '#22c55e', // Green for cheaper flights
+            50000, '#eab308', // Yellow for medium cost
+            75000, '#ef4444'  // Red for expensive flights
+          ],
+          'line-width': 2,
+          'line-opacity': 0.6
+        }
       });
     }
-  };
+  }, [homeAirport, airports]);
 
   return (
-    <div className="relative w-full h-[600px] rounded-xl overflow-hidden border border-slate-700">
+    <div className="relative w-full h-full rounded-xl overflow-hidden border border-slate-700">
       <div ref={mapContainer} className="w-full h-full" />
       
       {/* Controls overlay */}
@@ -290,10 +259,10 @@ const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ onDestination
             <Home className="w-4 h-4 text-blue-400" />
             <span className="text-sm font-medium text-white">Home Airport</span>
           </div>
-          {selectedHomeAirport ? (
+          {homeAirport ? (
             <div className="text-xs text-gray-300">
-              <div className="font-medium">{selectedHomeAirport.iata_code}</div>
-              <div>{selectedHomeAirport.city}</div>
+              <div className="font-medium text-green-400">{homeAirport.iata_code}</div>
+              <div>{homeAirport.city}</div>
             </div>
           ) : (
             <div className="text-xs text-gray-400">
@@ -331,10 +300,10 @@ const InteractiveGlobeMap: React.FC<InteractiveGlobeMapProps> = ({ onDestination
           <span className="text-sm font-medium text-white">How to Use</span>
         </div>
         <div className="text-xs text-gray-300 space-y-1">
-          <div>• Click airports to view details</div>
-          <div>• Select destinations for flight search</div>
+          <div>• Hover over airports to see details</div>
+          <div>• Click "Set Home" to set home airport</div>
+          <div>• Click "Select Route" for flight search</div>
           <div>• Routes show from your home airport</div>
-          <div>• Colors indicate point costs</div>
         </div>
       </div>
     </div>
