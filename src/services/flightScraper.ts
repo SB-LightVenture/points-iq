@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { flightScrapingCache } from './flightScrapingCache';
 
@@ -9,7 +8,7 @@ export interface ScrapingResult {
   airline: string;
   error?: string;
   live_scraping?: boolean;
-  source?: 'live' | 'mock' | 'cache';
+  source?: 'live' | 'mock' | 'cache' | 'error';
 }
 
 export class FlightScrapingService {
