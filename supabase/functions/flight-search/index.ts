@@ -147,7 +147,7 @@ async function scrapeFlightsForWallets(params: any) {
     console.log(`Scraping flights for ${programCode}...`);
 
     try {
-      // Only scrape for American Airlines for now
+      // American Airlines scraper
       if (programCode === 'AA') {
         const { data, error } = await supabase.functions.invoke('scrape-american-airlines', {
           body: {
@@ -170,7 +170,32 @@ async function scrapeFlightsForWallets(params: any) {
         } else {
           scrapingResult = data;
         }
-      } else {
+      }
+      // Virgin Australia scraper
+      else if (programCode === 'VA') {
+        const { data, error } = await supabase.functions.invoke('scrape-virgin-australia', {
+          body: {
+            origin: params.origin,
+            destination: params.destination,
+            departureDate: params.departureDate,
+            returnDate: params.returnDate,
+            cabinClass: params.cabinClass,
+            passengers: params.passengers
+          }
+        });
+
+        if (error) {
+          console.error(`Error scraping ${programCode}:`, error);
+          scrapingResult = {
+            success: false,
+            results: [],
+            error: error.message
+          };
+        } else {
+          scrapingResult = data;
+        }
+      }
+      else {
         // For other airlines, use mock data for now
         console.log(`${programCode} scraper not implemented yet, using mock data`);
         scrapingResult = {

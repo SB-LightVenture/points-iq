@@ -44,19 +44,50 @@ export class FlightScrapingService {
     }
   }
 
+  async scrapeVirginAustralia(params: any): Promise<ScrapingResult> {
+    try {
+      console.log('Calling Virgin Australia scraper...');
+      
+      const { data, error } = await supabase.functions.invoke('scrape-virgin-australia', {
+        body: params
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Virgin Australia scraping failed:', error);
+      return {
+        success: false,
+        results: [],
+        scraped_at: new Date().toISOString(),
+        airline: 'Virgin Australia',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
   async scrapeMultipleAirlines(params: any, airlineCodes: string[]): Promise<ScrapingResult[]> {
     const results: ScrapingResult[] = [];
     
-    // For now, we only have AA scraper implemented
+    // American Airlines scraper
     if (airlineCodes.includes('AA')) {
       const aaResult = await this.scrapeAmericanAirlines(params);
       results.push(aaResult);
     }
 
+    // Virgin Australia scraper
+    if (airlineCodes.includes('VA')) {
+      const vaResult = await this.scrapeVirginAustralia(params);
+      results.push(vaResult);
+    }
+
     // TODO: Add other airline scrapers
-    // if (airlineCodes.includes('BA')) {
-    //   const baResult = await this.scrapeBritishAirways(params);
-    //   results.push(baResult);
+    // if (airlineCodes.includes('QF')) {
+    //   const qfResult = await this.scrapeQantas(params);
+    //   results.push(qfResult);
     // }
 
     return results;
