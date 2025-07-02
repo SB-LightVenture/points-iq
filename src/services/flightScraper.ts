@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { flightScrapingCache } from './flightScrapingCache';
 
 export interface ScrapingResult {
   success: boolean;
@@ -7,6 +8,8 @@ export interface ScrapingResult {
   scraped_at: string;
   airline: string;
   error?: string;
+  live_scraping?: boolean;
+  source?: 'live' | 'mock' | 'cache';
 }
 
 export class FlightScrapingService {
@@ -20,6 +23,18 @@ export class FlightScrapingService {
   }
 
   async scrapeAmericanAirlines(params: any): Promise<ScrapingResult> {
+    const cacheKey = flightScrapingCache.generateKey({ ...params, airline: 'AA' });
+    
+    // Check cache first
+    const cachedResult = flightScrapingCache.get(cacheKey);
+    if (cachedResult) {
+      console.log('Returning cached AA results');
+      return {
+        ...cachedResult,
+        source: 'cache'
+      };
+    }
+
     try {
       console.log('Calling American Airlines scraper...');
       
@@ -31,6 +46,9 @@ export class FlightScrapingService {
         throw new Error(error.message);
       }
 
+      // Cache successful results
+      flightScrapingCache.set(cacheKey, data);
+      
       return data;
     } catch (error) {
       console.error('AA scraping failed:', error);
@@ -39,14 +57,27 @@ export class FlightScrapingService {
         results: [],
         scraped_at: new Date().toISOString(),
         airline: 'American Airlines',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        source: 'error'
       };
     }
   }
 
   async scrapeVirginAustralia(params: any): Promise<ScrapingResult> {
+    const cacheKey = flightScrapingCache.generateKey({ ...params, airline: 'VA' });
+    
+    // Check cache first
+    const cachedResult = flightScrapingCache.get(cacheKey);
+    if (cachedResult) {
+      console.log('Returning cached Virgin Australia results');
+      return {
+        ...cachedResult,
+        source: 'cache'
+      };
+    }
+
     try {
-      console.log('Calling Virgin Australia scraper...');
+      console.log('Calling Virgin Australia live scraper...');
       
       const { data, error } = await supabase.functions.invoke('scrape-virgin-australia', {
         body: params
@@ -56,6 +87,9 @@ export class FlightScrapingService {
         throw new Error(error.message);
       }
 
+      // Cache successful results
+      flightScrapingCache.set(cacheKey, data);
+      
       return data;
     } catch (error) {
       console.error('Virgin Australia scraping failed:', error);
@@ -64,7 +98,8 @@ export class FlightScrapingService {
         results: [],
         scraped_at: new Date().toISOString(),
         airline: 'Virgin Australia',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        source: 'error'
       };
     }
   }
@@ -78,7 +113,7 @@ export class FlightScrapingService {
       results.push(aaResult);
     }
 
-    // Virgin Australia scraper
+    // Virgin Australia scraper (now with live scraping)
     if (airlineCodes.includes('VA')) {
       const vaResult = await this.scrapeVirginAustralia(params);
       results.push(vaResult);
@@ -97,6 +132,16 @@ export class FlightScrapingService {
   getAirlineCodesFromWallets(selectedWallets: any[]): string[] {
     const codes = selectedWallets.map(wallet => wallet.frequent_flyer_programs.code);
     return [...new Set(codes)]; // Remove duplicates
+  }
+
+  // Get cache statistics
+  getCacheStats() {
+    return flightScrapingCache.getStats();
+  }
+
+  // Clear cache manually
+  clearCache() {
+    flightScrapingCache.clear();
   }
 }
 
