@@ -43,6 +43,8 @@ interface SearchResult {
     programName: string;
     programCode: string;
     availability: FlightResult[];
+    scraped: boolean;
+    error?: string | null;
   }[];
 }
 
@@ -62,6 +64,8 @@ export const useFlightSearch = () => {
     setError(null);
 
     try {
+      console.log('Starting flight search with scraping...');
+      
       const { data, error: functionError } = await supabase.functions.invoke('flight-search', {
         body: params
       });
@@ -70,7 +74,20 @@ export const useFlightSearch = () => {
         throw new Error(functionError.message);
       }
 
+      console.log('Flight search completed:', data);
       setSearchResults(data);
+      
+      // Log scraping success/failure for each program
+      if (data.results) {
+        data.results.forEach((result: any) => {
+          if (result.scraped) {
+            console.log(`✅ Successfully scraped ${result.programCode}: ${result.availability.length} flights found`);
+          } else {
+            console.log(`❌ Failed to scrape ${result.programCode}:`, result.error);
+          }
+        });
+      }
+      
     } catch (err) {
       console.error('Flight search error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred during search');

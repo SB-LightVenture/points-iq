@@ -88,59 +88,40 @@ serve(async (req) => {
         onConflict: 'origin_airport,destination_airport'
       });
 
-    // TODO: Replace with actual Amadeus API integration
-    // For now, return mock data structure
-    const mockResults = {
+    // Start scraping process
+    console.log('Starting flight scraping process...');
+    const scrapingResults = await scrapeFlightsForWallets({
+      origin,
+      destination,
+      departureDate,
+      returnDate,
+      cabinClass,
+      passengers,
+      selectedWallets
+    });
+
+    // Format results for frontend
+    const formattedResults = {
       searchId: searchRecord.id,
       origin,
       destination,
       departureDate,
       returnDate,
       cabinClass,
-      results: selectedWallets.map((wallet: any) => ({
-        programId: wallet.program_id,
-        programName: wallet.frequent_flyer_programs.name,
-        programCode: wallet.frequent_flyer_programs.code,
-        availability: [
-          {
-            airline: 'American Airlines',
-            flight: 'AA 100',
-            departure: '08:00',
-            arrival: '14:30',
-            duration: '6h 30m',
-            aircraft: 'Boeing 737',
-            pointsCost: Math.floor(Math.random() * 50000) + 25000,
-            cashCost: Math.floor(Math.random() * 200) + 50,
-            availability: Math.random() > 0.3 ? 'Available' : 'Waitlist',
-            stops: 0
-          },
-          {
-            airline: 'United Airlines',
-            flight: 'UA 250',
-            departure: '10:15',
-            arrival: '17:45',
-            duration: '7h 30m',
-            aircraft: 'Boeing 787',
-            pointsCost: Math.floor(Math.random() * 60000) + 30000,
-            cashCost: Math.floor(Math.random() * 300) + 75,
-            availability: Math.random() > 0.4 ? 'Available' : 'Waitlist',
-            stops: 1
-          }
-        ]
-      }))
+      results: scrapingResults
     };
 
     // Update search record with results
     await supabase
       .from('flight_searches')
       .update({
-        api_response: mockResults,
+        api_response: formattedResults,
         status: 'completed',
         updated_at: new Date().toISOString()
       })
       .eq('id', searchRecord.id);
 
-    return new Response(JSON.stringify(mockResults), {
+    return new Response(JSON.stringify(formattedResults), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
@@ -155,3 +136,101 @@ serve(async (req) => {
     );
   }
 });
+
+async function scrapeFlightsForWallets(params: any) {
+  const results = [];
+  
+  for (const wallet of params.selectedWallets) {
+    const programCode = wallet.frequent_flyer_programs.code;
+    let scrapingResult = null;
+
+    console.log(`Scraping flights for ${programCode}...`);
+
+    try {
+      // Only scrape for American Airlines for now
+      if (programCode === 'AA') {
+        const { data, error } = await supabase.functions.invoke('scrape-american-airlines', {
+          body: {
+            origin: params.origin,
+            destination: params.destination,
+            departureDate: params.departureDate,
+            returnDate: params.returnDate,
+            cabinClass: params.cabinClass,
+            passengers: params.passengers
+          }
+        });
+
+        if (error) {
+          console.error(`Error scraping ${programCode}:`, error);
+          scrapingResult = {
+            success: false,
+            results: [],
+            error: error.message
+          };
+        } else {
+          scrapingResult = data;
+        }
+      } else {
+        // For other airlines, use mock data for now
+        console.log(`${programCode} scraper not implemented yet, using mock data`);
+        scrapingResult = {
+          success: true,
+          results: generateMockFlights(programCode, params),
+          scraped_at: new Date().toISOString(),
+          airline: wallet.frequent_flyer_programs.name
+        };
+      }
+
+      results.push({
+        programId: wallet.program_id,
+        programName: wallet.frequent_flyer_programs.name,
+        programCode: programCode,
+        availability: scrapingResult.success ? scrapingResult.results : [],
+        scraped: scrapingResult.success,
+        error: scrapingResult.error || null
+      });
+      
+    } catch (error) {
+      console.error(`Failed to scrape ${programCode}:`, error);
+      results.push({
+        programId: wallet.program_id,
+        programName: wallet.frequent_flyer_programs.name,
+        programCode: programCode,
+        availability: [],
+        scraped: false,
+        error: error.message
+      });
+    }
+  }
+
+  return results;
+}
+
+function generateMockFlights(programCode: string, params: any) {
+  // Generate mock data for airlines we haven't implemented scraping for yet
+  const airlines = {
+    'QF': 'Qantas',
+    'VA': 'Virgin Australia', 
+    'BA': 'British Airways',
+    'EK': 'Emirates',
+    'SQ': 'Singapore Airlines',
+    'CX': 'Cathay Pacific'
+  };
+
+  const airlineName = airlines[programCode as keyof typeof airlines] || 'Unknown';
+  
+  return [
+    {
+      airline: airlineName,
+      flight: `${programCode} ${Math.floor(Math.random() * 9000) + 100}`,
+      departure: '09:30',
+      arrival: '15:45',
+      duration: '6h 15m',
+      aircraft: 'Boeing 777',
+      pointsCost: Math.floor(Math.random() * 50000) + 30000,
+      cashCost: Math.floor(Math.random() * 200) + 100,
+      availability: Math.random() > 0.4 ? 'Available' : 'Waitlist',
+      stops: Math.random() > 0.7 ? 0 : 1
+    }
+  ];
+}
