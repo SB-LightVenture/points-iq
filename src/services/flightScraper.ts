@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { flightScrapingCache } from './flightScrapingCache';
 
@@ -22,6 +23,14 @@ export class FlightScrapingService {
     return FlightScrapingService.instance;
   }
 
+  private dispatchDebugEvent(info: any) {
+    // Dispatch custom event for debug monitor
+    const event = new CustomEvent('flightSearchDebug', {
+      detail: { debugInfo: info }
+    });
+    window.dispatchEvent(event);
+  }
+
   async scrapeAmericanAirlines(params: any): Promise<ScrapingResult> {
     const cacheKey = flightScrapingCache.generateKey({ ...params, airline: 'AA' });
     
@@ -29,6 +38,19 @@ export class FlightScrapingService {
     const cachedResult = flightScrapingCache.get(cacheKey);
     if (cachedResult) {
       console.log('Returning cached AA results');
+      
+      this.dispatchDebugEvent({
+        timestamp: new Date().toISOString(),
+        airline: 'American Airlines',
+        status: 'success',
+        source: 'cache',
+        responseTime: 50,
+        debug: {
+          data_source: 'cached_data',
+          route: `${params.origin}-${params.destination}`
+        }
+      });
+
       return {
         ...cachedResult,
         source: 'cache'
@@ -54,6 +76,18 @@ export class FlightScrapingService {
       const responseTime = performance.now() - startTime;
       console.log(`AA scraping completed in ${responseTime.toFixed(0)}ms`);
       
+      this.dispatchDebugEvent({
+        timestamp: new Date().toISOString(),
+        airline: 'American Airlines',
+        status: 'success',
+        source: data.source || 'mock',
+        responseTime: Math.round(responseTime),
+        debug: {
+          ...data.debug,
+          response_time_ms: responseTime.toFixed(0)
+        }
+      });
+      
       return {
         ...data,
         debug: {
@@ -64,6 +98,20 @@ export class FlightScrapingService {
     } catch (error) {
       const responseTime = performance.now() - startTime;
       console.error('AA scraping failed:', error);
+      
+      this.dispatchDebugEvent({
+        timestamp: new Date().toISOString(),
+        airline: 'American Airlines',
+        status: 'error',
+        source: 'error',
+        responseTime: Math.round(responseTime),
+        error: error instanceof Error ? error.message : 'Unknown error',
+        debug: {
+          error_type: 'scraping_failure',
+          response_time_ms: responseTime.toFixed(0),
+          error_details: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
       
       return {
         success: false,
@@ -88,6 +136,19 @@ export class FlightScrapingService {
     const cachedResult = flightScrapingCache.get(cacheKey);
     if (cachedResult) {
       console.log('Returning cached Virgin Australia results');
+      
+      this.dispatchDebugEvent({
+        timestamp: new Date().toISOString(),
+        airline: 'Virgin Australia',
+        status: 'success',
+        source: 'cache',
+        responseTime: 45,
+        debug: {
+          data_source: 'cached_data',
+          route: `${params.origin}-${params.destination}`
+        }
+      });
+
       return {
         ...cachedResult,
         source: 'cache'
@@ -115,6 +176,19 @@ export class FlightScrapingService {
       const responseTime = performance.now() - startTime;
       console.log(`Virgin Australia scraping completed in ${responseTime.toFixed(0)}ms - Source: ${data.source}`);
       
+      this.dispatchDebugEvent({
+        timestamp: new Date().toISOString(),
+        airline: 'Virgin Australia',
+        status: data.success ? 'success' : 'error',
+        source: data.source || 'mock',
+        responseTime: Math.round(responseTime),
+        error: data.error || undefined,
+        debug: {
+          ...data.debug,
+          response_time_ms: responseTime.toFixed(0)
+        }
+      });
+      
       return {
         ...data,
         debug: {
@@ -125,6 +199,20 @@ export class FlightScrapingService {
     } catch (error) {
       const responseTime = performance.now() - startTime;
       console.error('Virgin Australia scraping failed:', error);
+      
+      this.dispatchDebugEvent({
+        timestamp: new Date().toISOString(),
+        airline: 'Virgin Australia',
+        status: 'error',
+        source: 'error',
+        responseTime: Math.round(responseTime),
+        error: error instanceof Error ? error.message : 'Unknown error',
+        debug: {
+          error_type: 'scraping_failure',
+          response_time_ms: responseTime.toFixed(0),
+          error_details: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
       
       return {
         success: false,
@@ -151,7 +239,7 @@ export class FlightScrapingService {
       results.push(aaResult);
     }
 
-    // Virgin Australia scraper (now with live scraping)
+    // Virgin Australia scraper (now with enhanced mock data)
     if (airlineCodes.includes('VA')) {
       const vaResult = await this.scrapeVirginAustralia(params);
       results.push(vaResult);

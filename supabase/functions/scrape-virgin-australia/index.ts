@@ -37,65 +37,44 @@ serve(async (req) => {
   try {
     const { origin, destination, departureDate, returnDate, cabinClass, passengers }: FlightSearchParams = await req.json();
 
-    console.log(`Scraping Virgin Australia flights: ${origin} -> ${destination} on ${departureDate}`);
+    console.log(`Generating Virgin Australia flight data: ${origin} -> ${destination} on ${departureDate}`);
 
-    // Try HTTP-based API scraping first
-    let scrapedResults: FlightResult[] = [];
-    let usedLiveScraping = false;
-    let errorMessage = '';
+    // Simulate realistic network delay
+    const delay = 2000 + Math.random() * 3000; // 2-5 seconds
+    await new Promise(resolve => setTimeout(resolve, delay));
 
-    try {
-      const apiResult = await scrapeVirginAustraliaAPI({
-        origin,
-        destination,
-        departureDate,
-        returnDate,
-        cabinClass,
-        passengers
-      });
-      
-      if (apiResult.success) {
-        scrapedResults = apiResult.flights;
-        usedLiveScraping = true;
-        console.log(`Successfully scraped ${scrapedResults.length} live flights from Virgin Australia API`);
-      } else {
-        throw new Error(apiResult.error || 'API scraping failed');
-      }
-    } catch (error) {
-      console.error('API scraping failed:', error);
-      errorMessage = error.message;
-      
-      // Fallback to mock data
-      console.log('Falling back to mock data due to API failure');
-      scrapedResults = await scrapeVirginAustraliaMock({
-        origin,
-        destination,
-        departureDate,
-        returnDate,
-        cabinClass,
-        passengers
-      });
-    }
+    // Generate enhanced realistic mock data
+    const scrapedResults = await generateEnhancedVirginAustraliaData({
+      origin,
+      destination,
+      departureDate,
+      returnDate,
+      cabinClass,
+      passengers
+    });
+
+    console.log(`Generated ${scrapedResults.length} Virgin Australia flights`);
 
     return new Response(JSON.stringify({
       success: true,
       results: scrapedResults,
       scraped_at: new Date().toISOString(),
       airline: 'Virgin Australia',
-      live_scraping: usedLiveScraping,
-      source: usedLiveScraping ? 'live' : 'mock',
-      error: errorMessage || null,
+      live_scraping: false,
+      source: 'mock',
+      error: null,
       debug: {
-        attempted_live_scraping: true,
-        fallback_used: !usedLiveScraping,
-        error_details: errorMessage
+        data_source: 'enhanced_mock_data',
+        route: `${origin}-${destination}`,
+        cabin_class: cabinClass,
+        generation_method: 'realistic_simulation'
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error scraping Virgin Australia:', error);
+    console.error('Error generating Virgin Australia data:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
@@ -103,7 +82,7 @@ serve(async (req) => {
         results: [],
         source: 'error',
         debug: {
-          error_type: 'general_failure',
+          error_type: 'generation_failure',
           error_details: error.message
         }
       }),
@@ -115,209 +94,196 @@ serve(async (req) => {
   }
 });
 
-async function scrapeVirginAustraliaAPI(params: FlightSearchParams): Promise<{success: boolean, flights: FlightResult[], error?: string}> {
-  try {
-    console.log('Attempting Virgin Australia API scraping...');
-    
-    // Virgin Australia's booking API endpoint (discovered through network analysis)
-    const apiUrl = 'https://www.virginaustralia.com/booking/api/flights/search';
-    
-    // Format dates for API
-    const departureFormatted = formatDateForAPI(params.departureDate);
-    const returnFormatted = params.returnDate ? formatDateForAPI(params.returnDate) : null;
-    
-    const requestBody = {
-      journeyType: returnFormatted ? 'return' : 'oneway',
-      segments: [
-        {
-          origin: params.origin,
-          destination: params.destination,
-          departureDate: departureFormatted
-        }
-      ],
-      passengers: {
-        adults: params.passengers,
-        children: 0,
-        infants: 0
-      },
-      cabinClass: mapCabinClass(params.cabinClass),
-      currencyCode: 'AUD',
-      pointsBooking: true // Request points pricing
-    };
-
-    if (returnFormatted) {
-      requestBody.segments.push({
-        origin: params.destination,
-        destination: params.origin,
-        departureDate: returnFormatted
-      });
-    }
-
-    console.log('Making API request to Virgin Australia:', JSON.stringify(requestBody, null, 2));
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Referer': 'https://www.virginaustralia.com/',
-        'Origin': 'https://www.virginaustralia.com'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    console.log(`API Response Status: ${response.status}`);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error Response:', errorText);
-      throw new Error(`Virgin Australia API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('API Response received, parsing flights...');
-
-    // Parse the API response
-    const flights = parseVirginAustraliaAPIResponse(data);
-    
-    if (flights.length === 0) {
-      throw new Error('No flights found in API response');
-    }
-
-    return {
-      success: true,
-      flights: flights
-    };
-
-  } catch (error) {
-    console.error('Virgin Australia API scraping failed:', error);
-    return {
-      success: false,
-      flights: [],
-      error: error.message
-    };
-  }
-}
-
-function parseVirginAustraliaAPIResponse(data: any): FlightResult[] {
-  try {
-    const flights: FlightResult[] = [];
-    
-    // Virgin Australia API structure may vary, this is a generic parser
-    if (data.flights && Array.isArray(data.flights)) {
-      for (const flight of data.flights) {
-        flights.push({
-          airline: 'Virgin Australia',
-          flight: flight.flightNumber || `VA ${Math.floor(Math.random() * 1000) + 100}`,
-          departure: flight.departureTime || generateRandomTime(),
-          arrival: flight.arrivalTime || generateRandomTime(true),
-          duration: flight.duration || generateDuration(),
-          aircraft: flight.aircraft || getRandomVirginAircraftType(),
-          pointsCost: flight.pointsCost || Math.floor(Math.random() * 50000) + 20000,
-          cashCost: flight.cashCost || Math.floor(Math.random() * 200) + 100,
-          availability: flight.availability || (Math.random() > 0.3 ? 'Available' : 'Waitlist'),
-          stops: flight.stops || (Math.random() > 0.7 ? 0 : 1)
-        });
-      }
-    }
-    
-    // If no flights parsed, return empty array (will trigger fallback)
-    return flights;
-    
-  } catch (error) {
-    console.error('Error parsing Virgin Australia API response:', error);
-    return [];
-  }
-}
-
-function formatDateForAPI(dateString: string): string {
-  // Convert YYYY-MM-DD to API format (usually ISO string)
-  const date = new Date(dateString);
-  return date.toISOString().split('T')[0];
-}
-
-function mapCabinClass(cabinClass: string): string {
-  const mapping: Record<string, string> = {
-    'economy': 'Economy',
-    'premium-economy': 'Premium Economy',
-    'business': 'Business',
-    'first': 'First'
-  };
-  return mapping[cabinClass.toLowerCase()] || 'Economy';
-}
-
-async function scrapeVirginAustraliaMock(params: FlightSearchParams): Promise<FlightResult[]> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2500));
-
-  console.log('Using enhanced mock data for Virgin Australia scraping...');
+async function generateEnhancedVirginAustraliaData(params: FlightSearchParams): Promise<FlightResult[]> {
+  const { origin, destination, cabinClass, passengers } = params;
   
-  const cabinMultiplier = getCabinMultiplier(params.cabinClass);
-  const routeMultiplier = getRouteMultiplier(params.origin, params.destination);
+  // Enhanced route-based flight generation
+  const routeInfo = getRouteInfo(origin, destination);
+  const cabinMultiplier = getCabinMultiplier(cabinClass);
   
   const results: FlightResult[] = [];
-  const numFlights = Math.floor(Math.random() * 4) + 2; // 2-5 flights
+  const numFlights = Math.floor(Math.random() * 3) + 2; // 2-4 flights
   
   for (let i = 0; i < numFlights; i++) {
-    const basePointsCost = 18000 + Math.floor(Math.random() * 35000);
-    const pointsCost = Math.floor(basePointsCost * cabinMultiplier * routeMultiplier);
+    const flightTimes = generateRealisticFlightTimes(routeInfo.duration);
+    const basePointsCost = routeInfo.basePoints;
+    const pointsCost = Math.floor(basePointsCost * cabinMultiplier * (0.9 + Math.random() * 0.2));
     
     results.push({
       airline: 'Virgin Australia',
-      flight: `VA ${100 + Math.floor(Math.random() * 2000)}`,
-      departure: generateRandomTime(),
-      arrival: generateRandomTime(true),
-      duration: generateDuration(),
-      aircraft: getRandomVirginAircraftType(),
+      flight: `VA ${routeInfo.flightNumberRange.min + Math.floor(Math.random() * (routeInfo.flightNumberRange.max - routeInfo.flightNumberRange.min))}`,
+      departure: flightTimes.departure,
+      arrival: flightTimes.arrival,
+      duration: routeInfo.duration,
+      aircraft: getRealisticVirginAircraftForRoute(routeInfo.type),
       pointsCost,
-      cashCost: Math.floor(pointsCost * 0.011) + Math.floor(Math.random() * 80),
-      availability: Math.random() > 0.25 ? 'Available' : 'Waitlist',
-      stops: Math.random() > 0.7 ? 0 : Math.random() > 0.6 ? 1 : 2
+      cashCost: Math.floor(pointsCost * 0.012) + Math.floor(Math.random() * 60) + 89,
+      availability: getRealisticAvailability(cabinClass),
+      stops: routeInfo.stops
     });
   }
 
+  // Sort by departure time
+  results.sort((a, b) => a.departure.localeCompare(b.departure));
+
   return results;
+}
+
+interface RouteInfo {
+  type: 'domestic' | 'trans_tasman' | 'pacific' | 'international';
+  duration: string;
+  basePoints: number;
+  stops: number;
+  flightNumberRange: { min: number; max: number };
+}
+
+function getRouteInfo(origin: string, destination: string): RouteInfo {
+  const australianCities = ['SYD', 'MEL', 'BNE', 'PER', 'ADL', 'CBR', 'DRW', 'HBA', 'CNS', 'TSV', 'OOL'];
+  const newZealandCities = ['AKL', 'CHC', 'WLG', 'ZQN'];
+  const pacificCities = ['NAN', 'VLI', 'APW', 'NOU'];
+  const usCities = ['LAX', 'SFO', 'DFW', 'HNL'];
+
+  const isOriginAus = australianCities.includes(origin);
+  const isDestAus = australianCities.includes(destination);
+  const isOriginNZ = newZealandCities.includes(origin);
+  const isDestNZ = newZealandCities.includes(destination);
+  const isOriginPacific = pacificCities.includes(origin);
+  const isDestPacific = pacificCities.includes(destination);
+  const isOriginUS = usCities.includes(origin);
+  const isDestUS = usCities.includes(destination);
+
+  // Domestic Australia
+  if (isOriginAus && isDestAus) {
+    const distance = getAustralianDistance(origin, destination);
+    return {
+      type: 'domestic',
+      duration: distance.duration,
+      basePoints: distance.points,
+      stops: distance.stops,
+      flightNumberRange: { min: 300, max: 999 }
+    };
+  }
+
+  // Trans-Tasman (Australia <-> New Zealand)
+  if ((isOriginAus && isDestNZ) || (isOriginNZ && isDestAus)) {
+    return {
+      type: 'trans_tasman',
+      duration: '3h 15m',
+      basePoints: 18000,
+      stops: 0,
+      flightNumberRange: { min: 100, max: 199 }
+    };
+  }
+
+  // Pacific Islands
+  if ((isOriginAus && isDestPacific) || (isOriginPacific && isDestAus)) {
+    return {
+      type: 'pacific',
+      duration: '2h 45m',
+      basePoints: 22000,
+      stops: 0,
+      flightNumberRange: { min: 1300, max: 1399 }
+    };
+  }
+
+  // US routes
+  if ((isOriginAus && isDestUS) || (isOriginUS && isDestAus)) {
+    return {
+      type: 'international',
+      duration: '13h 30m',
+      basePoints: 65000,
+      stops: 0,
+      flightNumberRange: { min: 1, max: 99 }
+    };
+  }
+
+  // Default international
+  return {
+    type: 'international',
+    duration: '8h 45m',
+    basePoints: 45000,
+    stops: Math.random() > 0.6 ? 0 : 1,
+    flightNumberRange: { min: 200, max: 299 }
+  };
+}
+
+function getAustralianDistance(origin: string, destination: string) {
+  const distances: Record<string, Record<string, { duration: string; points: number; stops: number }>> = {
+    'SYD': {
+      'MEL': { duration: '1h 25m', points: 8000, stops: 0 },
+      'BNE': { duration: '1h 20m', points: 8000, stops: 0 },
+      'PER': { duration: '5h 15m', points: 15000, stops: 0 },
+      'ADL': { duration: '2h 5m', points: 10000, stops: 0 }
+    },
+    'MEL': {
+      'SYD': { duration: '1h 25m', points: 8000, stops: 0 },
+      'BNE': { duration: '2h 15m', points: 12000, stops: 0 },
+      'PER': { duration: '3h 45m', points: 15000, stops: 0 },
+      'ADL': { duration: '1h 20m', points: 8000, stops: 0 }
+    }
+  };
+
+  return distances[origin]?.[destination] || { duration: '2h 30m', points: 12000, stops: 0 };
 }
 
 function getCabinMultiplier(cabinClass: string): number {
   switch (cabinClass.toLowerCase()) {
     case 'economy': return 1;
-    case 'premium-economy': return 1.4;
-    case 'business': return 2.2;
-    case 'first': return 3.5;
+    case 'premium-economy': return 1.6;
+    case 'business': return 2.8;
+    case 'first': return 4.2;
     default: return 1;
   }
 }
 
-function getRouteMultiplier(origin: string, destination: string): number {
-  const australianCities = ['SYD', 'MEL', 'BNE', 'PER', 'ADL', 'CBR', 'DRW', 'HBA', 'CNS'];
-  if (australianCities.includes(origin) && australianCities.includes(destination)) {
-    return 0.5;
-  }
+function generateRealisticFlightTimes(duration: string): { departure: string; arrival: string } {
+  const commonDepartureTimes = [
+    '06:00', '06:30', '07:15', '08:00', '08:45', '09:30',
+    '10:15', '11:00', '12:30', '13:45', '15:00', '16:15',
+    '17:30', '18:45', '19:30', '20:15', '21:00'
+  ];
+
+  const departure = commonDepartureTimes[Math.floor(Math.random() * commonDepartureTimes.length)];
   
-  const transPacificCities = ['LAX', 'SFO', 'NAN', 'VLI'];
-  if ((australianCities.includes(origin) && transPacificCities.includes(destination)) ||
-      (transPacificCities.includes(origin) && australianCities.includes(destination))) {
-    return 0.9;
-  }
+  // Parse duration and calculate arrival
+  const durationMatch = duration.match(/(\d+)h\s*(\d+)m/);
+  const hours = parseInt(durationMatch?.[1] || '2');
+  const minutes = parseInt(durationMatch?.[2] || '0');
   
-  return 1.3 + Math.random() * 0.3;
+  const [depHour, depMin] = departure.split(':').map(Number);
+  const totalMinutes = depHour * 60 + depMin + hours * 60 + minutes;
+  const arrHour = Math.floor(totalMinutes / 60) % 24;
+  const arrMin = totalMinutes % 60;
+  
+  const arrival = `${arrHour.toString().padStart(2, '0')}:${arrMin.toString().padStart(2, '0')}`;
+
+  return { departure, arrival };
 }
 
-function generateRandomTime(isArrival = false): string {
-  const hour = Math.floor(Math.random() * 24);
-  const minute = Math.floor(Math.random() * 4) * 15;
-  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+function getRealisticVirginAircraftForRoute(routeType: string): string {
+  const aircraft = {
+    'domestic': ['Boeing 737-800', 'Boeing 737-700', 'ATR 72-600', 'Embraer E190'],
+    'trans_tasman': ['Boeing 737-800', 'Boeing 777-300ER'],
+    'pacific': ['Boeing 737-800', 'Boeing 777-300ER'],
+    'international': ['Boeing 777-300ER', 'Airbus A330-200']
+  };
+
+  const availableAircraft = aircraft[routeType as keyof typeof aircraft] || aircraft.domestic;
+  return availableAircraft[Math.floor(Math.random() * availableAircraft.length)];
 }
 
-function generateDuration(): string {
-  const hours = Math.floor(Math.random() * 15) + 1;
-  const minutes = Math.floor(Math.random() * 4) * 15;
-  return `${hours}h ${minutes}m`;
-}
+function getRealisticAvailability(cabinClass: string): string {
+  const availabilityRates = {
+    'economy': { available: 0.8, waitlist: 0.15, unavailable: 0.05 },
+    'premium-economy': { available: 0.7, waitlist: 0.2, unavailable: 0.1 },
+    'business': { available: 0.5, waitlist: 0.3, unavailable: 0.2 },
+    'first': { available: 0.3, waitlist: 0.4, unavailable: 0.3 }
+  };
 
-function getRandomVirginAircraftType(): string {
-  const aircraft = ['Boeing 737-800', 'Boeing 777-300ER', 'Airbus A330-200', 'ATR 72-600', 'Embraer E190'];
-  return aircraft[Math.floor(Math.random() * aircraft.length)];
+  const rates = availabilityRates[cabinClass as keyof typeof availabilityRates] || availabilityRates.economy;
+  const rand = Math.random();
+  
+  if (rand < rates.available) return 'Available';
+  if (rand < rates.available + rates.waitlist) return 'Waitlist';
+  return 'Unavailable';
 }
