@@ -9,6 +9,7 @@ export interface ScrapingResult {
   error?: string;
   live_scraping?: boolean;
   source?: 'live' | 'mock' | 'cache' | 'error';
+  debug?: any;
 }
 
 export class FlightScrapingService {
@@ -34,6 +35,8 @@ export class FlightScrapingService {
       };
     }
 
+    const startTime = performance.now();
+
     try {
       console.log('Calling American Airlines scraper...');
       
@@ -48,16 +51,32 @@ export class FlightScrapingService {
       // Cache successful results
       flightScrapingCache.set(cacheKey, data);
       
-      return data;
+      const responseTime = performance.now() - startTime;
+      console.log(`AA scraping completed in ${responseTime.toFixed(0)}ms`);
+      
+      return {
+        ...data,
+        debug: {
+          ...data.debug,
+          response_time_ms: responseTime.toFixed(0)
+        }
+      };
     } catch (error) {
+      const responseTime = performance.now() - startTime;
       console.error('AA scraping failed:', error);
+      
       return {
         success: false,
         results: [],
         scraped_at: new Date().toISOString(),
         airline: 'American Airlines',
         error: error instanceof Error ? error.message : 'Unknown error',
-        source: 'error'
+        source: 'error',
+        debug: {
+          error_type: 'scraping_failure',
+          response_time_ms: responseTime.toFixed(0),
+          error_details: error instanceof Error ? error.message : 'Unknown error'
+        }
       };
     }
   }
@@ -75,8 +94,10 @@ export class FlightScrapingService {
       };
     }
 
+    const startTime = performance.now();
+
     try {
-      console.log('Calling Virgin Australia live scraper...');
+      console.log('Calling Virgin Australia enhanced scraper...');
       
       const { data, error } = await supabase.functions.invoke('scrape-virgin-australia', {
         body: params
@@ -87,18 +108,36 @@ export class FlightScrapingService {
       }
 
       // Cache successful results
-      flightScrapingCache.set(cacheKey, data);
+      if (data.success) {
+        flightScrapingCache.set(cacheKey, data);
+      }
       
-      return data;
+      const responseTime = performance.now() - startTime;
+      console.log(`Virgin Australia scraping completed in ${responseTime.toFixed(0)}ms - Source: ${data.source}`);
+      
+      return {
+        ...data,
+        debug: {
+          ...data.debug,
+          response_time_ms: responseTime.toFixed(0)
+        }
+      };
     } catch (error) {
+      const responseTime = performance.now() - startTime;
       console.error('Virgin Australia scraping failed:', error);
+      
       return {
         success: false,
         results: [],
         scraped_at: new Date().toISOString(),
         airline: 'Virgin Australia',
         error: error instanceof Error ? error.message : 'Unknown error',
-        source: 'error'
+        source: 'error',
+        debug: {
+          error_type: 'scraping_failure',
+          response_time_ms: responseTime.toFixed(0),
+          error_details: error instanceof Error ? error.message : 'Unknown error'
+        }
       };
     }
   }

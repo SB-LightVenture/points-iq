@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +8,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import WalletsSection from '@/components/WalletsSection';
 import FlightSearchContainer from '@/components/FlightSearchContainer';
 import GlobeSection from '@/components/GlobeSection';
+import ScrapingDebugMonitor from '@/components/ScrapingDebugMonitor';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -150,6 +150,8 @@ const Dashboard = () => {
         programs={programs}
         wallet={editingWallet}
       />
+
+      <ScrapingDebugMonitor />
     </div>
   );
 };
