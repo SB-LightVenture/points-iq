@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -37,44 +36,65 @@ serve(async (req) => {
   try {
     const { origin, destination, departureDate, returnDate, cabinClass, passengers }: FlightSearchParams = await req.json();
 
-    console.log(`Generating Virgin Australia flight data: ${origin} -> ${destination} on ${departureDate}`);
+    console.log(`Scraping Virgin Australia: ${origin} -> ${destination} on ${departureDate}`);
 
-    // Simulate realistic network delay
-    const delay = 2000 + Math.random() * 3000; // 2-5 seconds
-    await new Promise(resolve => setTimeout(resolve, delay));
+    // Try live scraping first, fallback to enhanced mock data
+    let scrapedResults: FlightResult[];
+    let dataSource = 'live_scraping';
+    let errorMessage = null;
 
-    // Generate enhanced realistic mock data
-    const scrapedResults = await generateEnhancedVirginAustraliaData({
-      origin,
-      destination,
-      departureDate,
-      returnDate,
-      cabinClass,
-      passengers
-    });
-
-    console.log(`Generated ${scrapedResults.length} Virgin Australia flights`);
+    try {
+      scrapedResults = await scrapeVirginAustraliaLive({
+        origin,
+        destination,
+        departureDate,
+        returnDate,
+        cabinClass,
+        passengers
+      });
+      
+      if (scrapedResults.length === 0) {
+        throw new Error('No flights found via live scraping');
+      }
+      
+      console.log(`Live scraping successful: Found ${scrapedResults.length} flights`);
+    } catch (scrapeError) {
+      console.log('Live scraping failed, falling back to enhanced mock data:', scrapeError.message);
+      dataSource = 'enhanced_mock';
+      errorMessage = scrapeError.message;
+      
+      // Fallback to enhanced mock data
+      scrapedResults = await generateEnhancedVirginAustraliaData({
+        origin,
+        destination,
+        departureDate,
+        returnDate,
+        cabinClass,
+        passengers
+      });
+    }
 
     return new Response(JSON.stringify({
       success: true,
       results: scrapedResults,
       scraped_at: new Date().toISOString(),
       airline: 'Virgin Australia',
-      live_scraping: false,
-      source: 'mock',
-      error: null,
+      live_scraping: dataSource === 'live_scraping',
+      source: dataSource,
+      error: errorMessage,
       debug: {
-        data_source: 'enhanced_mock_data',
+        data_source: dataSource,
         route: `${origin}-${destination}`,
         cabin_class: cabinClass,
-        generation_method: 'realistic_simulation'
+        scraping_method: dataSource === 'live_scraping' ? 'playwright_browser_automation' : 'realistic_simulation',
+        fallback_reason: errorMessage
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error generating Virgin Australia data:', error);
+    console.error('Error in Virgin Australia scraper:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
@@ -82,7 +102,7 @@ serve(async (req) => {
         results: [],
         source: 'error',
         debug: {
-          error_type: 'generation_failure',
+          error_type: 'scraper_failure',
           error_details: error.message
         }
       }),
@@ -93,6 +113,169 @@ serve(async (req) => {
     );
   }
 });
+
+async function scrapeVirginAustraliaLive(params: FlightSearchParams): Promise<FlightResult[]> {
+  // Import Playwright for Deno
+  const { chromium } = await import("npm:playwright@1.40.0");
+  
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu'
+    ]
+  });
+
+  try {
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      viewport: { width: 1920, height: 1080 }
+    });
+
+    const page = await context.newPage();
+    
+    // Set up network interception to capture API calls
+    const apiCalls: any[] = [];
+    page.on('response', async (response) => {
+      const url = response.url();
+      if (url.includes('api') || url.includes('flight') || url.includes('search')) {
+        try {
+          const responseData = await response.json();
+          apiCalls.push({
+            url,
+            status: response.status(),
+            data: responseData
+          });
+        } catch (e) {
+          // Response might not be JSON
+        }
+      }
+    });
+
+    // Navigate to Virgin Australia booking page
+    await page.goto('https://www.virginaustralia.com/au/en/booking/flight-booking/', {
+      waitUntil: 'networkidle',
+      timeout: 30000
+    });
+
+    // Fill in search form
+    await page.waitForSelector('[data-testid="search-form"]', { timeout: 10000 });
+    
+    // Fill origin
+    await page.click('[data-testid="departure-airport-input"]');
+    await page.fill('[data-testid="departure-airport-input"]', params.origin);
+    await page.waitForTimeout(1000);
+    
+    // Fill destination
+    await page.click('[data-testid="arrival-airport-input"]');
+    await page.fill('[data-testid="arrival-airport-input"]', params.destination);
+    await page.waitForTimeout(1000);
+    
+    // Fill departure date
+    await page.click('[data-testid="departure-date-input"]');
+    await page.fill('[data-testid="departure-date-input"]', formatDateForVA(params.departureDate));
+    
+    // Fill return date if provided
+    if (params.returnDate) {
+      await page.click('[data-testid="return-date-input"]');
+      await page.fill('[data-testid="return-date-input"]', formatDateForVA(params.returnDate));
+    }
+    
+    // Set passengers
+    if (params.passengers > 1) {
+      await page.click('[data-testid="passenger-selector"]');
+      // Add passenger logic here
+    }
+    
+    // Set cabin class
+    if (params.cabinClass !== 'economy') {
+      await page.click('[data-testid="cabin-class-selector"]');
+      await page.click(`[data-testid="cabin-${params.cabinClass}"]`);
+    }
+
+    // Submit search
+    await page.click('[data-testid="search-flights-button"]');
+    
+    // Wait for results to load
+    await page.waitForSelector('[data-testid="flight-results"]', { timeout: 30000 });
+    await page.waitForTimeout(3000); // Wait for all results to load
+
+    // Extract flight data
+    const flights = await page.evaluate(() => {
+      const flightElements = document.querySelectorAll('[data-testid="flight-option"]');
+      const results: any[] = [];
+      
+      flightElements.forEach((element) => {
+        try {
+          const flightNumber = element.querySelector('[data-testid="flight-number"]')?.textContent?.trim() || '';
+          const departure = element.querySelector('[data-testid="departure-time"]')?.textContent?.trim() || '';
+          const arrival = element.querySelector('[data-testid="arrival-time"]')?.textContent?.trim() || '';
+          const duration = element.querySelector('[data-testid="flight-duration"]')?.textContent?.trim() || '';
+          const aircraft = element.querySelector('[data-testid="aircraft-type"]')?.textContent?.trim() || '';
+          const pointsText = element.querySelector('[data-testid="points-cost"]')?.textContent?.trim() || '';
+          const cashText = element.querySelector('[data-testid="cash-cost"]')?.textContent?.trim() || '';
+          const availabilityText = element.querySelector('[data-testid="availability"]')?.textContent?.trim() || '';
+          const stopsText = element.querySelector('[data-testid="stops"]')?.textContent?.trim() || '';
+          
+          // Extract numeric values
+          const pointsCost = parseInt(pointsText.replace(/[^\d]/g, '')) || 0;
+          const cashCost = parseInt(cashText.replace(/[^\d]/g, '')) || 0;
+          const stops = stopsText.includes('Direct') ? 0 : 1;
+          
+          if (flightNumber && departure && arrival) {
+            results.push({
+              airline: 'Virgin Australia',
+              flight: flightNumber,
+              departure,
+              arrival,
+              duration,
+              aircraft: aircraft || 'Boeing 737-800',
+              pointsCost,
+              cashCost,
+              availability: availabilityText || 'Available',
+              stops
+            });
+          }
+        } catch (e) {
+          console.log('Error parsing flight element:', e);
+        }
+      });
+      
+      return results;
+    });
+
+    console.log(`Scraped ${flights.length} flights from Virgin Australia`);
+    console.log('API calls intercepted:', apiCalls.length);
+    
+    // Log API calls for future direct integration
+    apiCalls.forEach(call => {
+      console.log(`API Call: ${call.url} - Status: ${call.status}`);
+    });
+
+    if (flights.length === 0) {
+      throw new Error('No flights found on Virgin Australia website');
+    }
+
+    return flights;
+    
+  } finally {
+    await browser.close();
+  }
+}
+
+function formatDateForVA(dateString: string): string {
+  // Convert YYYY-MM-DD to DD/MM/YYYY format for Virgin Australia
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 async function generateEnhancedVirginAustraliaData(params: FlightSearchParams): Promise<FlightResult[]> {
   const { origin, destination, cabinClass, passengers } = params;

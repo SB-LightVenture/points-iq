@@ -158,7 +158,7 @@ export class FlightScrapingService {
     const startTime = performance.now();
 
     try {
-      console.log('Calling Virgin Australia enhanced scraper...');
+      console.log('Calling Virgin Australia Playwright scraper...');
       
       const { data, error } = await supabase.functions.invoke('scrape-virgin-australia', {
         body: params
@@ -168,24 +168,29 @@ export class FlightScrapingService {
         throw new Error(error.message);
       }
 
-      // Cache successful results
+      // Cache successful results (even enhanced mock data for consistency)
       if (data.success) {
         flightScrapingCache.set(cacheKey, data);
       }
       
       const responseTime = performance.now() - startTime;
+      const isLiveScraping = data.source === 'live_scraping';
+      const isEnhancedMock = data.source === 'enhanced_mock';
+      
       console.log(`Virgin Australia scraping completed in ${responseTime.toFixed(0)}ms - Source: ${data.source}`);
       
       this.dispatchDebugEvent({
         timestamp: new Date().toISOString(),
         airline: 'Virgin Australia',
         status: data.success ? 'success' : 'error',
-        source: data.source || 'mock',
+        source: data.source || 'enhanced_mock',
         responseTime: Math.round(responseTime),
         error: data.error || undefined,
         debug: {
           ...data.debug,
-          response_time_ms: responseTime.toFixed(0)
+          response_time_ms: responseTime.toFixed(0),
+          scraping_method: isLiveScraping ? 'playwright_browser_automation' : 'realistic_simulation',
+          fallback_reason: isEnhancedMock ? data.debug?.fallback_reason : undefined
         }
       });
       

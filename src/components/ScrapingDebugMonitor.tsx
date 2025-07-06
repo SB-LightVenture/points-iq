@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle, Clock, Database, RefreshCw, Bug, Zap } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Database, RefreshCw, Bug, Zap, Globe, AlertTriangle } from 'lucide-react';
 
 interface DebugInfo {
   timestamp: string;
   airline: string;
   status: 'success' | 'error' | 'cache';
-  source: 'live' | 'mock' | 'cache' | 'error';
+  source: 'live' | 'mock' | 'cache' | 'error' | 'live_scraping' | 'enhanced_mock';
   error?: string;
   debug?: any;
   responseTime: number;
@@ -42,15 +42,19 @@ const ScrapingDebugMonitor: React.FC = () => {
   const getStatusIcon = (status: string, source: string) => {
     if (source === 'error') return <AlertCircle className="w-4 h-4 text-red-500" />;
     if (source === 'cache') return <Database className="w-4 h-4 text-blue-500" />;
+    if (source === 'live_scraping') return <Globe className="w-4 h-4 text-green-500" />;
     if (source === 'live') return <Zap className="w-4 h-4 text-green-500" />;
+    if (source === 'enhanced_mock') return <AlertTriangle className="w-4 h-4 text-orange-500" />;
     if (source === 'mock') return <CheckCircle className="w-4 h-4 text-yellow-500" />;
     return <Clock className="w-4 h-4 text-gray-500" />;
   };
 
   const getStatusColor = (source: string) => {
     switch (source) {
+      case 'live_scraping': return 'bg-green-500/20 text-green-300 border-green-500/30';
       case 'live': return 'bg-green-500/20 text-green-300 border-green-500/30';
       case 'cache': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'enhanced_mock': return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
       case 'mock': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
       case 'error': return 'bg-red-500/20 text-red-300 border-red-500/30';
       default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
@@ -59,9 +63,11 @@ const ScrapingDebugMonitor: React.FC = () => {
 
   const getSourceDescription = (source: string) => {
     switch (source) {
-      case 'live': return 'Real-time data from airline';
+      case 'live_scraping': return 'Live data via web scraping';
+      case 'live': return 'Real-time data from airline API';
       case 'cache': return 'Recently cached data';
-      case 'mock': return 'Simulated realistic data';
+      case 'enhanced_mock': return 'High-quality simulated data (fallback)';
+      case 'mock': return 'Basic simulated data';
       case 'error': return 'Failed to retrieve data';
       default: return 'Unknown data source';
     }
@@ -119,12 +125,12 @@ const ScrapingDebugMonitor: React.FC = () => {
               <div className="text-xs text-gray-500">
                 <div className="flex items-center justify-center space-x-4 mt-2">
                   <div className="flex items-center space-x-1">
-                    <Zap className="w-3 h-3 text-green-500" />
+                    <Globe className="w-3 h-3 text-green-500" />
                     <span>Live</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <CheckCircle className="w-3 h-3 text-yellow-500" />
-                    <span>Mock</span>
+                    <AlertTriangle className="w-3 h-3 text-orange-500" />
+                    <span>Enhanced</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Database className="w-3 h-3 text-blue-500" />
@@ -142,7 +148,7 @@ const ScrapingDebugMonitor: React.FC = () => {
                       {getStatusIcon(log.status, log.source)}
                       <span className="font-medium text-white">{log.airline}</span>
                       <Badge variant="outline" className={getStatusColor(log.source)}>
-                        {log.source}
+                        {log.source === 'live_scraping' ? 'LIVE' : log.source === 'enhanced_mock' ? 'ENHANCED' : log.source.toUpperCase()}
                       </Badge>
                     </div>
                     <span className="text-gray-400">{log.responseTime}ms</span>
@@ -152,6 +158,12 @@ const ScrapingDebugMonitor: React.FC = () => {
                     {getSourceDescription(log.source)}
                   </div>
                   
+                  {log.debug?.fallback_reason && (
+                    <div className="text-orange-300 bg-orange-500/10 rounded px-2 py-1 mb-1 text-xs">
+                      Fallback: {log.debug.fallback_reason}
+                    </div>
+                  )}
+                  
                   {log.error && (
                     <div className="text-red-300 bg-red-500/10 rounded px-2 py-1 mb-1">
                       {log.error}
@@ -160,14 +172,14 @@ const ScrapingDebugMonitor: React.FC = () => {
                   
                   {log.debug && (
                     <div className="text-gray-300 bg-slate-600/30 rounded px-2 py-1">
-                      {log.debug.data_source && (
-                        <div className="mb-1">Source: {log.debug.data_source}</div>
+                      {log.debug.scraping_method && (
+                        <div className="mb-1">Method: {log.debug.scraping_method}</div>
                       )}
                       {log.debug.route && (
                         <div className="mb-1">Route: {log.debug.route}</div>
                       )}
-                      {log.debug.generation_method && (
-                        <div className="mb-1">Method: {log.debug.generation_method}</div>
+                      {log.debug.data_source && (
+                        <div className="mb-1">Source: {log.debug.data_source}</div>
                       )}
                       {log.debug.error_details && (
                         <div className="text-red-300">Error: {log.debug.error_details}</div>
