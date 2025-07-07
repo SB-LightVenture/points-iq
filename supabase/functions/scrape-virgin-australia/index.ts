@@ -19,9 +19,9 @@ serve(async (req) => {
   try {
     const { origin, destination, departureDate, returnDate, cabinClass, passengers }: FlightSearchParams = await req.json();
 
-    console.log(`Scraping Virgin Australia Award Flights: ${origin} -> ${destination} on ${departureDate}`);
+    console.log(`Virgin Australia Award Flights Search: ${origin} -> ${destination} on ${departureDate}`);
 
-    // Try live scraping first, fallback to enhanced mock data
+    // Try HTTP-based live scraping first, then Playwright, then fallback to enhanced mock data
     let scrapedResults: FlightResult[];
     let dataSource = 'live_scraping';
     let errorMessage = null;
@@ -69,9 +69,10 @@ serve(async (req) => {
         data_source: dataSource,
         route: `${origin}-${destination}`,
         cabin_class: cabinClass,
-        scraping_method: dataSource === 'live_scraping' ? 'playwright_award_booking_automation' : 'realistic_simulation',
+        scraping_method: dataSource === 'live_scraping' ? 'http_then_playwright_award_booking' : 'realistic_simulation',
         fallback_reason: errorMessage,
-        award_booking: true
+        award_booking: true,
+        approach: 'http_first_then_browser_fallback'
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -87,7 +88,8 @@ serve(async (req) => {
         source: 'error',
         debug: {
           error_type: 'award_scraper_failure',
-          error_details: error.message
+          error_details: error.message,
+          approach: 'http_first_then_browser_fallback'
         }
       }),
       {
