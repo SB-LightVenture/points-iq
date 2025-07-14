@@ -136,10 +136,11 @@ const Dashboard = () => {
           initialSearchParams={flightSearchParams}
         />
 
-        <GlobeSection 
+        {/* Temporarily hidden - Globe Dashboard not working */}
+        {/* <GlobeSection 
           selectedWallets={selectedWallets}
           onDestinationSelect={handleDestinationSelect} 
-        />
+        /> */}
       </main>
 
       <WalletModal
