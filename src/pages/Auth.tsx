@@ -4,8 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
 import { Lock, Mail, User, ArrowLeft } from 'lucide-react';
+import { showEnhancedToast, showSuccessToast } from '@/components/ui/enhanced-toast';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +16,6 @@ const Auth = () => {
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -31,57 +30,29 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast({
-              title: "Login Failed",
-              description: "Invalid email or password. Please try again.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Login Failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
+        const { userFriendlyError } = await signIn(email, password);
+        if (userFriendlyError) {
+          showEnhancedToast(userFriendlyError, () => handleSubmit(e));
         } else {
-          toast({
-            title: "Welcome back!",
-            description: "You've been successfully logged in.",
-          });
+          showSuccessToast("Welcome back!", "You've been successfully logged in.");
           navigate('/dashboard');
         }
       } else {
-        const { error } = await signUp(email, password, fullName);
-        if (error) {
-          if (error.message.includes('User already registered')) {
-            toast({
-              title: "Account Exists",
-              description: "An account with this email already exists. Please sign in instead.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Sign Up Failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
+        const { userFriendlyError } = await signUp(email, password, fullName);
+        if (userFriendlyError) {
+          showEnhancedToast(userFriendlyError, () => handleSubmit(e));
         } else {
-          toast({
-            title: "Account Created!",
-            description: "Please check your email to confirm your account.",
-          });
+          showSuccessToast("Account Created!", "Please check your email to confirm your account.");
         }
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+      showEnhancedToast({
+        title: "Unexpected Error",
+        message: "Something went wrong. Please try again.",
+        type: "error",
+        retry: true,
+        actions: ["Check your internet connection", "Try refreshing the page"]
+      }, () => handleSubmit(e));
     } finally {
       setLoading(false);
     }

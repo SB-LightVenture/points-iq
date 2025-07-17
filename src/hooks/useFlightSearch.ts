@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
+import { ErrorHandler } from '@/utils/errorUtils';
 
 type PointsWallet = Tables<'points_wallets'> & {
   frequent_flyer_programs: Tables<'frequent_flyer_programs'>;
@@ -52,11 +53,12 @@ export const useFlightSearch = () => {
   const { user } = useAuth();
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<any>(null);
 
   const searchFlights = async (params: FlightSearchParams) => {
     if (!user) {
-      setError('User not authenticated');
+      const authError = ErrorHandler.getUserFriendlyError(new Error('User not authenticated'), 'auth-session');
+      setError(authError);
       return;
     }
 
@@ -90,7 +92,8 @@ export const useFlightSearch = () => {
       
     } catch (err) {
       console.error('Flight search error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during search');
+      const userFriendlyError = ErrorHandler.getUserFriendlyError(err, 'flight-search');
+      setError(userFriendlyError);
     } finally {
       setLoading(false);
     }

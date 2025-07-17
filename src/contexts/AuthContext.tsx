@@ -2,13 +2,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { ErrorHandler } from '@/utils/errorUtils';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ userFriendlyError: any }>;
+  signIn: (email: string, password: string) => Promise<{ userFriendlyError: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -61,7 +62,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
     
-    return { error };
+    const userFriendlyError = error ? ErrorHandler.getUserFriendlyError(error, 'auth-signup') : null;
+    return { userFriendlyError };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -69,7 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
     });
-    return { error };
+    const userFriendlyError = error ? ErrorHandler.getUserFriendlyError(error, 'auth-login') : null;
+    return { userFriendlyError };
   };
 
   const signOut = async () => {

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
+import { ErrorHandler } from '@/utils/errorUtils';
 
 type PointsWallet = Tables<'points_wallets'> & {
   frequent_flyer_programs: Tables<'frequent_flyer_programs'>;
@@ -56,7 +57,10 @@ export const usePointsWallets = () => {
   };
 
   const createWallet = async (programId: string, pointsBalance: number, statusLevel: string) => {
-    if (!user) return { error: 'User not authenticated' };
+    if (!user) {
+      const authError = ErrorHandler.getUserFriendlyError(new Error('User not authenticated'), 'auth-session');
+      return { userFriendlyError: authError };
+    }
     
     const { data, error } = await supabase
       .from('points_wallets')
@@ -75,7 +79,8 @@ export const usePointsWallets = () => {
     
     if (error) {
       console.error('Error creating wallet:', error);
-      return { error: error.message };
+      const userFriendlyError = ErrorHandler.getUserFriendlyError(error, 'wallet-create');
+      return { userFriendlyError };
     }
     
     await fetchWallets();
@@ -90,11 +95,12 @@ export const usePointsWallets = () => {
     
     if (error) {
       console.error('Error updating wallet:', error);
-      return { error: error.message };
+      const userFriendlyError = ErrorHandler.getUserFriendlyError(error, 'wallet-update');
+      return { userFriendlyError };
     }
     
     await fetchWallets();
-    return { error: null };
+    return { userFriendlyError: null };
   };
 
   const deleteWallet = async (walletId: string) => {
@@ -105,13 +111,14 @@ export const usePointsWallets = () => {
     
     if (error) {
       console.error('Error deleting wallet:', error);
-      return { error: error.message };
+      const userFriendlyError = ErrorHandler.getUserFriendlyError(error, 'wallet-delete');
+      return { userFriendlyError };
     }
     
     // Remove from selected wallets if it was selected
     setSelectedWalletIds(prev => prev.filter(id => id !== walletId));
     await fetchWallets();
-    return { error: null };
+    return { userFriendlyError: null };
   };
 
   const toggleWalletSelection = (walletId: string) => {

@@ -2,18 +2,17 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { usePointsWallets } from '@/hooks/usePointsWallets';
-import { useToast } from '@/hooks/use-toast';
 import WalletModal from '@/components/WalletModal';
 import DashboardHeader from '@/components/DashboardHeader';
 import WalletsSection from '@/components/WalletsSection';
 import FlightSearchContainer from '@/components/FlightSearchContainer';
 import GlobeSection from '@/components/GlobeSection';
 import ScrapingDebugMonitor from '@/components/ScrapingDebugMonitor';
+import { showEnhancedToast, showSuccessToast } from '@/components/ui/enhanced-toast';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const {
     wallets,
     programs,
@@ -39,54 +38,33 @@ const Dashboard = () => {
 
   const handleCreateWallet = async (programId: string, pointsBalance: number, statusLevel: string) => {
     const result = await createWallet(programId, pointsBalance, statusLevel);
-    if (result.error) {
-      toast({
-        title: "Error",
-        description: result.error,
-        variant: "destructive",
-      });
-      return { error: result.error };
+    if (result.userFriendlyError) {
+      showEnhancedToast(result.userFriendlyError);
+      return { error: result.userFriendlyError.message };
     }
     
-    toast({
-      title: "Wallet Created",
-      description: "Your points wallet has been added successfully.",
-    });
+    showSuccessToast("Wallet Created", "Your points wallet has been added successfully.");
     return { error: null };
   };
 
   const handleUpdateWallet = async (walletId: string, updates: any) => {
     const result = await updateWallet(walletId, updates);
-    if (result.error) {
-      toast({
-        title: "Error",
-        description: result.error,
-        variant: "destructive",
-      });
-      return { error: result.error };
+    if (result.userFriendlyError) {
+      showEnhancedToast(result.userFriendlyError);
+      return { error: result.userFriendlyError.message };
     }
     
-    toast({
-      title: "Wallet Updated",
-      description: "Your points wallet has been updated successfully.",
-    });
+    showSuccessToast("Wallet Updated", "Your points wallet has been updated successfully.");
     return { error: null };
   };
 
   const handleDeleteWallet = async (walletId: string) => {
     if (confirm('Are you sure you want to delete this wallet?')) {
       const result = await deleteWallet(walletId);
-      if (result.error) {
-        toast({
-          title: "Error",
-          description: result.error,
-          variant: "destructive",
-        });
+      if (result.userFriendlyError) {
+        showEnhancedToast(result.userFriendlyError);
       } else {
-        toast({
-          title: "Wallet Deleted",
-          description: "Your points wallet has been removed.",
-        });
+        showSuccessToast("Wallet Deleted", "Your points wallet has been removed.");
       }
     }
   };
@@ -103,10 +81,7 @@ const Dashboard = () => {
 
   const handleDestinationSelect = (origin: string, destination: string) => {
     setFlightSearchParams({ origin, destination });
-    toast({
-      title: "Route Selected",
-      description: `Flight search updated: ${origin} → ${destination}`,
-    });
+    showSuccessToast("Route Selected", `Flight search updated: ${origin} → ${destination}`);
   };
 
   const selectedWallets = getSelectedWallets();

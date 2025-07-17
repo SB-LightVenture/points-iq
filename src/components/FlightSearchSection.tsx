@@ -7,6 +7,7 @@ import FlightSearchResults from '@/components/FlightSearchResults';
 import FlightSearchForm from '@/components/FlightSearchForm';
 import FlightSearchSummary from '@/components/FlightSearchSummary';
 import PartnerNetworksDisplay from '@/components/PartnerNetworksDisplay';
+import { showEnhancedToast } from '@/components/ui/enhanced-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
 type PointsWallet = Tables<'points_wallets'> & {
@@ -48,6 +49,12 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({
 
   const handleSearch = () => {
     if (!origin.trim() || !destination.trim() || !departureDate) {
+      showEnhancedToast({
+        title: 'Missing Information',
+        message: 'Please fill in the origin, destination, and departure date to search flights.',
+        actions: ['Enter airport codes (e.g., LAX, JFK)', 'Select a valid departure date'],
+        type: 'error'
+      });
       return;
     }
 

@@ -14,7 +14,7 @@ interface FlightSearchFormProps {
   cabinClass: string;
   passengers: number;
   loading: boolean;
-  error: string | null;
+  error: any;
   onOriginChange: (value: string) => void;
   onDestinationChange: (value: string) => void;
   onDepartureDateChange: (value: string) => void;
@@ -146,8 +146,22 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
         </Button>
         
         {error && (
-          <div className="text-red-400 text-sm">
-            {error}
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400">
+            <div className="font-medium text-sm mb-1">{error.title}</div>
+            <div className="text-xs opacity-90 mb-2">{error.message}</div>
+            {error.actions && error.actions.length > 0 && (
+              <div className="text-xs opacity-80">
+                <div className="mb-1">Try:</div>
+                <ul className="space-y-1">
+                  {error.actions.map((action: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span>•</span>
+                      <span>{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>
