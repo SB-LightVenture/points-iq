@@ -36,8 +36,8 @@ const WalletsSection: React.FC<WalletsSectionProps> = ({
     <div className="mb-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Your Points Wallets</h2>
-          <p className="text-gray-300">Select wallets to search for flights across multiple programs</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Your Points Wallets</h2>
+          <p className="text-muted-foreground">Select wallets to search for flights across multiple programs</p>
         </div>
         <div className="flex items-center space-x-3">
           {wallets.length > 0 && (
@@ -45,7 +45,7 @@ const WalletsSection: React.FC<WalletsSectionProps> = ({
               <Button
                 variant="ghost"
                 onClick={selectedWalletIds.length === wallets.length ? onDeselectAllWallets : onSelectAllWallets}
-                className="text-gray-400 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 {selectedWalletIds.length === wallets.length ? (
                   <>
@@ -59,14 +59,14 @@ const WalletsSection: React.FC<WalletsSectionProps> = ({
                   </>
                 )}
               </Button>
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-muted-foreground">
                 {selectedWalletIds.length} of {wallets.length} selected
               </div>
             </>
           )}
           <Button
             onClick={onAddWallet}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] hover:opacity-90"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Wallet
@@ -76,19 +76,19 @@ const WalletsSection: React.FC<WalletsSectionProps> = ({
 
       {loading ? (
         <div className="text-center py-8">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading your wallets...</p>
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your wallets...</p>
         </div>
       ) : wallets.length === 0 ? (
-        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-xl p-8 text-center">
-          <Wallet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">No Wallets Yet</h3>
-          <p className="text-gray-300 mb-6">
+        <div className="bg-card border border-border rounded-xl p-8 text-center shadow-sm">
+          <Wallet className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">No Wallets Yet</h3>
+          <p className="text-muted-foreground mb-6">
             Add your first frequent flyer wallet to start searching for flights
           </p>
           <Button
             onClick={onAddWallet}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] hover:opacity-90"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Your First Wallet

@@ -22,10 +22,10 @@ const FlightSearchContainer: React.FC<FlightSearchContainerProps> = ({
   return (
     <div className="mb-16">
       <div className="text-center mb-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          Flight <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">Search</span>
+        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          Flight <span className="bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] bg-clip-text text-transparent">Search</span>
         </h2>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Search award flights across your selected frequent flyer programs
         </p>
       </div>

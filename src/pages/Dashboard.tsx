@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -87,7 +88,7 @@ const Dashboard = () => {
   const selectedWallets = getSelectedWallets();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       <DashboardHeader 
         userEmail={user?.email || ''} 
         onSignOut={handleSignOut} 

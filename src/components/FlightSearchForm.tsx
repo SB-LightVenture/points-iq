@@ -46,87 +46,87 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
       {/* Search Form */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div>
-          <Label htmlFor="origin" className="text-gray-300">Origin</Label>
+          <Label htmlFor="origin" className="text-foreground">Origin</Label>
           <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               id="origin"
               type="text"
               value={origin}
               onChange={(e) => onOriginChange(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
+              className="pl-10"
               placeholder="e.g., LAX, JFK, DFW"
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="destination" className="text-gray-300">Destination</Label>
+          <Label htmlFor="destination" className="text-foreground">Destination</Label>
           <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               id="destination"
               type="text"
               value={destination}
               onChange={(e) => onDestinationChange(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
+              className="pl-10"
               placeholder="e.g., NRT, LHR, CDG"
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="departure" className="text-gray-300">Departure Date</Label>
+          <Label htmlFor="departure" className="text-foreground">Departure Date</Label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               id="departure"
               type="date"
               value={departureDate}
               onChange={(e) => onDepartureDateChange(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
+              className="pl-10"
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="return" className="text-gray-300">Return Date (Optional)</Label>
+          <Label htmlFor="return" className="text-foreground">Return Date (Optional)</Label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               id="return"
               type="date"
               value={returnDate}
               onChange={(e) => onReturnDateChange(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400 pl-10"
+              className="pl-10"
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="cabin" className="text-gray-300">Cabin Class</Label>
+          <Label htmlFor="cabin" className="text-foreground">Cabin Class</Label>
           <Select value={cabinClass} onValueChange={onCabinClassChange}>
-            <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
-              <SelectItem value="economy" className="text-white hover:bg-slate-700">Economy</SelectItem>
-              <SelectItem value="premium-economy" className="text-white hover:bg-slate-700">Premium Economy</SelectItem>
-              <SelectItem value="business" className="text-white hover:bg-slate-700">Business</SelectItem>
-              <SelectItem value="first" className="text-white hover:bg-slate-700">First Class</SelectItem>
+            <SelectContent>
+              <SelectItem value="economy">Economy</SelectItem>
+              <SelectItem value="premium-economy">Premium Economy</SelectItem>
+              <SelectItem value="business">Business</SelectItem>
+              <SelectItem value="first">First Class</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <Label htmlFor="passengers" className="text-gray-300">Passengers</Label>
+          <Label htmlFor="passengers" className="text-foreground">Passengers</Label>
           <Select value={passengers.toString()} onValueChange={(value) => onPassengersChange(parseInt(value))}>
-            <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectContent>
               {[1, 2, 3, 4, 5, 6].map((num) => (
-                <SelectItem key={num} value={num.toString()} className="text-white hover:bg-slate-700">
+                <SelectItem key={num} value={num.toString()}>
                   {num} {num === 1 ? 'Passenger' : 'Passengers'}
                 </SelectItem>
               ))}
@@ -139,14 +139,14 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
         <Button
           onClick={onSearch}
           disabled={!origin.trim() || !destination.trim() || !departureDate || loading}
-          className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+          className="bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] hover:opacity-90"
         >
           <Search className="w-4 h-4 mr-2" />
           {loading ? 'Searching...' : 'Search Flights'}
         </Button>
         
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-destructive">
             <div className="font-medium text-sm mb-1">{error.title}</div>
             <div className="text-xs opacity-90 mb-2">{error.message}</div>
             {error.actions && error.actions.length > 0 && (

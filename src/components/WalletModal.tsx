@@ -91,13 +91,13 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md">
+      <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-lg">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] rounded-lg flex items-center justify-center">
               <Wallet className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-foreground">
               {wallet ? 'Edit Wallet' : 'Add New Wallet'}
             </h2>
           </div>
@@ -105,7 +105,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -113,18 +113,14 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="program" className="text-gray-300">Frequent Flyer Program</Label>
+            <Label htmlFor="program" className="text-foreground">Frequent Flyer Program</Label>
             <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-              <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+              <SelectTrigger>
                 <SelectValue placeholder="Select a program" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent>
                 {programs.map((program) => (
-                  <SelectItem 
-                    key={program.id} 
-                    value={program.id}
-                    className="text-white hover:bg-slate-700"
-                  >
+                  <SelectItem key={program.id} value={program.id}>
                     {program.name}
                   </SelectItem>
                 ))}
@@ -133,13 +129,12 @@ const WalletModal: React.FC<WalletModalProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="points" className="text-gray-300">Points Balance</Label>
+            <Label htmlFor="points" className="text-foreground">Points Balance</Label>
             <Input
               id="points"
               type="number"
               value={pointsBalance}
               onChange={(e) => setPointsBalance(e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-gray-400"
               placeholder="e.g., 108000"
               min="0"
               required
@@ -147,18 +142,14 @@ const WalletModal: React.FC<WalletModalProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="status" className="text-gray-300">Status Level</Label>
+            <Label htmlFor="status" className="text-foreground">Status Level</Label>
             <Select value={statusLevel} onValueChange={setStatusLevel}>
-              <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+              <SelectTrigger>
                 <SelectValue placeholder="Select status level" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent>
                 {availableStatuses.map((status) => (
-                  <SelectItem 
-                    key={status} 
-                    value={status}
-                    className="text-white hover:bg-slate-700"
-                  >
+                  <SelectItem key={status} value={status}>
                     {status}
                   </SelectItem>
                 ))}
@@ -169,16 +160,16 @@ const WalletModal: React.FC<WalletModalProps> = ({
           <div className="flex space-x-3 pt-4">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               onClick={onClose}
-              className="flex-1 text-gray-400 hover:text-white border border-slate-600"
+              className="flex-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading || !selectedProgram || !pointsBalance || !statusLevel}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="flex-1 bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] hover:opacity-90"
             >
               {loading ? 'Saving...' : wallet ? 'Update Wallet' : 'Add Wallet'}
             </Button>

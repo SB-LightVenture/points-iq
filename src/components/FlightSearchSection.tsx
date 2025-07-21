@@ -88,10 +88,10 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-white">Flight Search Results</h3>
+          <h3 className="text-xl font-bold text-foreground">Flight Search Results</h3>
           <Button
             onClick={handleNewSearch}
-            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
+            className="bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] hover:opacity-90 text-white"
           >
             New Search
           </Button>
@@ -103,10 +103,10 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({
 
   if (selectedWallets.length === 0) {
     return (
-      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-xl p-8 text-center">
-        <Plane className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-white mb-2">Select Wallets to Search</h3>
-        <p className="text-gray-300">
+      <div className="bg-card border border-border rounded-xl p-8 text-center shadow-sm">
+        <Plane className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-foreground mb-2">Select Wallets to Search</h3>
+        <p className="text-muted-foreground">
           Choose one or more wallets above to start searching for flight availability
         </p>
       </div>
@@ -114,14 +114,14 @@ const FlightSearchSection: React.FC<FlightSearchSectionProps> = ({
   }
 
   return (
-    <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
+    <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+        <div className="w-10 h-10 bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] rounded-lg flex items-center justify-center">
           <Search className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-white">Flight Search</h3>
-          <p className="text-sm text-gray-400">
+          <h3 className="text-xl font-bold text-foreground">Flight Search</h3>
+          <p className="text-sm text-muted-foreground">
             Searching across {getTotalPrograms()} program{getTotalPrograms() !== 1 ? 's' : ''}
           </p>
         </div>
