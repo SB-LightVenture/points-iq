@@ -35,13 +35,13 @@ export const HowItWorks = () => {
   };
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-slate-800/30">
+    <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gray-50">
       <div className="container mx-auto">
         <div className="text-center mb-12 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
-            How It <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Works</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
+            How It <span className="bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))] bg-clip-text text-transparent">Works</span>
           </h2>
-          <p className="text-lg sm:text-xl text-gray-300 max-w-2xl sm:max-w-3xl mx-auto px-2">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl sm:max-w-3xl mx-auto px-2">
             Four simple steps to unlock your points potential and start planning your next adventure
           </p>
         </div>
@@ -50,14 +50,14 @@ export const HowItWorks = () => {
           {steps.map((step, index) => (
             <div key={index} className="relative">
               {index < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-16 -right-4 w-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                <div className="hidden lg:block absolute top-16 -right-4 w-8 h-0.5 bg-gradient-to-r from-[hsl(var(--blue-brand))] to-[hsl(var(--orange-brand))]"></div>
               )}
               <div className="text-center">
                 <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-r ${colorMap[step.color]} mb-4 sm:mb-6 text-white font-bold text-lg sm:text-xl`}>
                   {step.step}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">{step.title}</h3>
-                <p className="text-gray-300 leading-relaxed text-sm sm:text-base">{step.description}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">{step.title}</h3>
+                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{step.description}</p>
               </div>
             </div>
           ))}
