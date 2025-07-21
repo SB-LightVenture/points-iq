@@ -72,9 +72,7 @@ export const ModernHero = () => {
                     <Plane className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                   </Button>
                 }
-              >
-                <DemoVideoContent />
-              </VideoModal>
+              />
             </div>
 
             {/* Trust Indicators */}
