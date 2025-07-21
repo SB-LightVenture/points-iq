@@ -44,11 +44,11 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
   const getAvailabilityColor = (availability: string) => {
     switch (availability.toLowerCase()) {
       case 'available':
-        return 'bg-green-500/20 text-green-300';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'waitlist':
-        return 'bg-yellow-500/20 text-yellow-300';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
-        return 'bg-gray-500/20 text-gray-300';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -62,8 +62,8 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
     return (
       <div className="space-y-4">
         <div className="text-center py-8">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300">Searching for flights...</p>
+          <div className="w-8 h-8 border-4 border-[hsl(var(--blue-brand))] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Searching for flights...</p>
         </div>
       </div>
     );
@@ -72,9 +72,9 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
   return (
     <div className="space-y-6">
       {/* Search Summary */}
-      <Card className="bg-slate-800/30 border-slate-700">
+      <Card className="bg-white border-border shadow-sm">
         <CardHeader>
-          <CardTitle className="text-white flex items-center space-x-2">
+          <CardTitle className="text-foreground flex items-center space-x-2">
             <Plane className="w-5 h-5" />
             <span>Search Results</span>
           </CardTitle>
@@ -82,22 +82,22 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-gray-400">Route</p>
-              <p className="text-white font-semibold">
+              <p className="text-muted-foreground">Route</p>
+              <p className="text-foreground font-semibold">
                 {searchResults.origin} → {searchResults.destination}
               </p>
             </div>
             <div>
-              <p className="text-gray-400">Departure</p>
-              <p className="text-white font-semibold">{searchResults.departureDate}</p>
+              <p className="text-muted-foreground">Departure</p>
+              <p className="text-foreground font-semibold">{searchResults.departureDate}</p>
             </div>
             <div>
-              <p className="text-gray-400">Cabin Class</p>
-              <p className="text-white font-semibold capitalize">{searchResults.cabinClass}</p>
+              <p className="text-muted-foreground">Cabin Class</p>
+              <p className="text-foreground font-semibold capitalize">{searchResults.cabinClass}</p>
             </div>
             <div>
-              <p className="text-gray-400">Programs</p>
-              <p className="text-white font-semibold">{searchResults.results.length}</p>
+              <p className="text-muted-foreground">Programs</p>
+              <p className="text-foreground font-semibold">{searchResults.results.length}</p>
             </div>
           </div>
         </CardContent>
@@ -105,18 +105,18 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
 
       {/* Results by Program */}
       {searchResults.results.map((programResult) => (
-        <Card key={programResult.programId} className="bg-slate-800/30 border-slate-700">
+        <Card key={programResult.programId} className="bg-white border-border shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white flex items-center justify-between">
+            <CardTitle className="text-foreground flex items-center justify-between">
               <span>{programResult.programName}</span>
-              <Badge variant="outline" className="text-gray-300 border-gray-600">
+              <Badge variant="outline" className="text-muted-foreground border-border">
                 {programResult.programCode}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {programResult.availability.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <AlertCircle className="w-8 h-8 mx-auto mb-2" />
                 <p>No flights found for this program</p>
               </div>
@@ -125,29 +125,29 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
                 {programResult.availability.map((flight, index) => (
                   <div
                     key={index}
-                    className="bg-slate-700/30 rounded-lg p-4 border border-slate-600/50"
+                    className="bg-gray-50 rounded-lg p-4 border border-border"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       {/* Flight Info */}
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <Plane className="w-4 h-4 text-blue-400" />
-                          <span className="text-white font-semibold">{flight.flight}</span>
+                          <Plane className="w-4 h-4 text-[hsl(var(--blue-brand))]" />
+                          <span className="text-foreground font-semibold">{flight.flight}</span>
                         </div>
-                        <p className="text-sm text-gray-300">{flight.airline}</p>
-                        <p className="text-xs text-gray-400">{flight.aircraft}</p>
+                        <p className="text-sm text-foreground">{flight.airline}</p>
+                        <p className="text-xs text-muted-foreground">{flight.aircraft}</p>
                       </div>
 
                       {/* Time Info */}
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <Clock className="w-4 h-4 text-green-400" />
-                          <span className="text-white">{flight.departure} - {flight.arrival}</span>
+                          <Clock className="w-4 h-4 text-green-600" />
+                          <span className="text-foreground">{flight.departure} - {flight.arrival}</span>
                         </div>
-                        <p className="text-sm text-gray-300">{flight.duration}</p>
+                        <p className="text-sm text-foreground">{flight.duration}</p>
                         <Badge 
                           variant="outline" 
-                          className="text-xs text-gray-300 border-gray-600"
+                          className="text-xs text-muted-foreground border-border"
                         >
                           {getStopsText(flight.stops)}
                         </Badge>
@@ -155,10 +155,10 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
 
                       {/* Cost Info */}
                       <div className="space-y-2">
-                        <div className="text-white font-semibold">
+                        <div className="text-foreground font-semibold">
                           {flight.pointsCost.toLocaleString()} pts
                         </div>
-                        <div className="text-sm text-gray-300">
+                        <div className="text-sm text-foreground">
                           + ${flight.cashCost}
                         </div>
                       </div>

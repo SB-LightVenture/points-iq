@@ -28,13 +28,13 @@ const PartnerNetworksDisplay: React.FC<PartnerNetworksDisplayProps> = ({ selecte
   }
 
   return (
-    <div className="bg-slate-700/20 rounded-lg p-4">
-      <h4 className="text-sm font-semibold text-gray-300 mb-2">Available Partner Networks</h4>
+    <div className="bg-gray-50 rounded-lg p-4 border border-border">
+      <h4 className="text-sm font-semibold text-foreground mb-2">Available Partner Networks</h4>
       <div className="flex flex-wrap gap-2">
         {uniquePartners.map((partner) => (
           <span
             key={partner}
-            className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full"
+            className="px-2 py-1 bg-gradient-to-r from-[hsl(var(--blue-brand))]/10 to-[hsl(var(--orange-brand))]/10 text-[hsl(var(--blue-brand))] text-xs rounded-full border border-[hsl(var(--blue-brand))]/20"
           >
             {partner}
           </span>
