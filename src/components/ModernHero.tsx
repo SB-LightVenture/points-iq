@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Plane, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { VideoModal } from "@/components/VideoModal";
+import { DemoVideoContent } from "@/components/DemoVideoContent";
 
 export const ModernHero = () => {
   const { user } = useAuth();
@@ -62,10 +64,17 @@ export const ModernHero = () => {
                 Get Started Free
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-              <Button size="lg" variant="outline" className="px-8 py-6 text-lg">
-                Watch Demo
-                <Plane className="ml-2 w-5 h-5" />
-              </Button>
+              
+              <VideoModal
+                trigger={
+                  <Button size="lg" variant="outline" className="px-8 py-6 text-lg group hover:bg-primary hover:text-primary-foreground transition-all duration-300">
+                    Watch Demo
+                    <Plane className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  </Button>
+                }
+              >
+                <DemoVideoContent />
+              </VideoModal>
             </div>
 
             {/* Trust Indicators */}
