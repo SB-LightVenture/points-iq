@@ -17,7 +17,9 @@ export const VideoModal = ({ trigger }: VideoModalProps) => {
       </DialogTrigger>
       <DialogContent className="max-w-4xl w-full p-0">
         <div className="relative aspect-video rounded-lg overflow-hidden">
-          <DemoVideoContent />
+          <div className="w-full h-full">
+            <DemoVideoContent />
+          </div>
         </div>
         
         {/* Video Title and Description */}
