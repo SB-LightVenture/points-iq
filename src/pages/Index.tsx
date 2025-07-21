@@ -1,19 +1,23 @@
 
-import { Hero } from "@/components/Hero";
-import { Features } from "@/components/Features";
+import { ModernHero } from "@/components/ModernHero";
+import { FlightPathDemo } from "@/components/FlightPathDemo";
+import { AvailabilityShowcase } from "@/components/AvailabilityShowcase";
+import { AirlineSupport } from "@/components/AirlineSupport";
+import { ModernFeatures } from "@/components/ModernFeatures";
+import { ModernPricing } from "@/components/ModernPricing";
 import { HowItWorks } from "@/components/HowItWorks";
-import { Benefits } from "@/components/Benefits";
-import { CTA } from "@/components/CTA";
 import { Footer } from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
-      <Hero />
-      <Features />
-      <Benefits />
+    <div className="min-h-screen bg-background">
+      <ModernHero />
+      <FlightPathDemo />
+      <AvailabilityShowcase />
+      <AirlineSupport />
+      <ModernFeatures />
       <HowItWorks />
-      <CTA />
+      <ModernPricing />
       <Footer />
     </div>
   );
