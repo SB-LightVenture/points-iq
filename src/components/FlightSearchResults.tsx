@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plane, Clock, MapPin, Users, AlertCircle } from 'lucide-react';
+import FlightDetailsPopover from '@/components/FlightDetailsPopover';
 
 interface FlightResult {
   airline: string;
@@ -15,6 +16,7 @@ interface FlightResult {
   cashCost: number;
   availability: string;
   stops: number;
+  bookingUrl?: string;
 }
 
 interface SearchResult {
@@ -163,11 +165,15 @@ const FlightSearchResults: React.FC<FlightSearchResultsProps> = ({
                         </div>
                       </div>
 
-                      {/* Availability */}
+                      {/* Flight Details */}
                       <div className="flex items-center justify-end">
-                        <Badge className={getAvailabilityColor(flight.availability)}>
-                          {flight.availability}
-                        </Badge>
+                        <FlightDetailsPopover
+                          flight={flight}
+                          origin={searchResults.origin}
+                          destination={searchResults.destination}
+                          departureDate={searchResults.departureDate}
+                          cabinClass={searchResults.cabinClass}
+                        />
                       </div>
                     </div>
                   </div>
